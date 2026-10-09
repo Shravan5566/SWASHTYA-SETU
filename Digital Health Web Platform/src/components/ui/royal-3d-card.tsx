@@ -150,9 +150,9 @@ export default function Royal3DCard({
             Digital Health ID
           </span>
         </div>
-        <div className="flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-white/90 border border-slate-200/80 shadow-2xs">
+        <div className="flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-white/90 border border-slate-200/80 shadow-2xs">
           <span className="text-[10px] font-semibold text-slate-600 font-mono">
-            NFC • RFID QR
+            SECURE QR ID
           </span>
         </div>
       </div>
@@ -160,49 +160,39 @@ export default function Royal3DCard({
       {/* 3D Transform Card Container */}
       <div
         ref={cardRef}
-        className="relative rounded-[24px] overflow-hidden transition-transform duration-75 will-change-transform"
+        className="relative rounded-[22px] overflow-hidden transition-transform duration-75 will-change-transform bg-transparent"
         style={{
           transformStyle: "preserve-3d",
           transform: `rotateX(${springValues.rotX.toFixed(2)}deg) rotateY(${springValues.rotY.toFixed(2)}deg) translateZ(12px)`,
-          boxShadow: `${springValues.shadowX.toFixed(1)}px ${springValues.shadowY.toFixed(1)}px 36px -10px rgba(15, 23, 42, 0.18), 0 10px 24px -5px rgba(234, 88, 12, 0.08)`,
+          boxShadow: `${springValues.shadowX.toFixed(1)}px ${springValues.shadowY.toFixed(1)}px 32px -8px rgba(15, 23, 42, 0.22), 0 8px 20px -6px rgba(234, 88, 12, 0.08)`,
         }}
       >
         {/* The Royal Health Card Artwork */}
         <img
           src={imageSrc}
           alt="Swasthya Setu Royal Patient Health Card"
-          className="w-full h-auto object-contain block select-none pointer-events-none rounded-[24px]"
+          className="w-full h-auto object-contain block select-none pointer-events-none rounded-[22px]"
           loading="eager"
           decoding="async"
         />
 
         {/* Dynamic Specular Point-Light Spotlight (Tracks Cursor) */}
         <div
-          className="absolute inset-0 pointer-events-none rounded-[24px] transition-opacity duration-150"
+          className="absolute inset-0 pointer-events-none rounded-[22px] transition-opacity duration-150"
           style={{
             opacity: springValues.glareOpacity,
-            background: `radial-gradient(circle at ${springValues.glareX}% ${springValues.glareY}%, rgba(255, 255, 255, 0.85) 0%, rgba(255, 255, 255, 0.25) 32%, transparent 65%)`,
+            background: `radial-gradient(circle at ${springValues.glareX}% ${springValues.glareY}%, rgba(255, 255, 255, 0.75) 0%, rgba(255, 255, 255, 0.18) 32%, transparent 65%)`,
             mixBlendMode: "overlay",
           }}
         />
 
         {/* Dynamic Holographic Iridescent Foil Prism Sheen */}
         <div
-          className="absolute inset-0 pointer-events-none rounded-[24px] transition-opacity duration-200"
+          className="absolute inset-0 pointer-events-none rounded-[22px] transition-opacity duration-200"
           style={{
-            opacity: springValues.glareOpacity * 0.7,
-            background: `linear-gradient(${115 + springValues.rotY * 2}deg, transparent 15%, rgba(254, 215, 170, 0.35) 30%, rgba(255, 255, 255, 0.65) 48%, rgba(187, 247, 208, 0.4) 64%, transparent 80%)`,
+            opacity: springValues.glareOpacity * 0.65,
+            background: `linear-gradient(${115 + springValues.rotY * 2}deg, transparent 15%, rgba(254, 215, 170, 0.3) 30%, rgba(255, 255, 255, 0.5) 48%, rgba(187, 247, 208, 0.35) 64%, transparent 80%)`,
             mixBlendMode: "color-dodge",
-          }}
-        />
-
-        {/* Glass Edge Bevel Highlight */}
-        <div
-          className="absolute inset-0 rounded-[24px] pointer-events-none"
-          style={{
-            border: "1.5px solid rgba(255, 255, 255, 0.65)",
-            boxShadow:
-              "inset 0 1px 2px rgba(255, 255, 255, 0.8), inset 0 -1px 2px rgba(0, 0, 0, 0.05)",
           }}
         />
       </div>
