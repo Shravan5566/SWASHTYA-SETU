@@ -1,0 +1,189 @@
+{% extends "base.html" %}
+
+{% block title %}Track Application Status — Swasthya Setu{% endblock %}
+
+{% block content %}
+<div style="max-width:800px; margin:0 auto; padding:1.5rem 1rem 3.5rem;">
+
+    <!-- Top Breadcrumb Navigation -->
+    <div style="margin-bottom:1.5rem;">
+        <a href="{{ url_for('index') }}" style="color:var(--primary); font-size:0.9rem; text-decoration:none; font-weight:600; display:inline-flex; align-items:center; gap:0.35rem;">
+            ← Back to Home
+        </a>
+    </div>
+
+    <!-- Header Card -->
+    <div style="background:white; border:1px solid var(--border-color); border-radius:var(--radius-lg); padding:2rem; margin-bottom:2rem; box-shadow:var(--shadow-sm);">
+        <div style="display:flex; align-items:center; gap:0.75rem; margin-bottom:0.5rem;">
+            <span style="font-size:2rem;">🔍</span>
+            <div>
+                <h1 style="font-size:1.75rem; font-weight:800; color:#0f172a; margin:0;">
+                    Track Application Status
+                </h1>
+                <div style="font-size:0.85rem; color:var(--text-muted); margin-top:0.25rem;">
+                    Real-time verification tracking for Health Cards and Staff Accreditation
+                </div>
+            </div>
+        </div>
+        <p style="color:var(--text-muted); font-size:0.95rem; line-height:1.6; margin-top:0.75rem;">
+            Enter your <strong>Application Reference ID</strong> (e.g. <code>APP-PAT-832B1A</code> or <code>APP-DOC-103C08</code>) or your registered <strong>10-digit mobile number</strong> to check the status of your submission.
+        </p>
+
+        <!-- Search Form -->
+        <form method="GET" action="{{ url_for('application_routes.check_status') }}" style="margin-top:1.5rem;">
+            <div style="display:flex; gap:0.75rem; flex-wrap:wrap;">
+                <input type="text" name="q" value="{{ query_param or '' }}" class="form-control" placeholder="Enter Ref ID (e.g. APP-PAT-XXXXXX) or Mobile Number" style="flex:1; min-width:240px; font-size:1rem; padding:0.65rem 1rem;" required>
+                <button type="submit" class="btn btn-primary" style="padding:0.65rem 1.75rem; font-size:1rem; font-weight:700;">
+                    Search Status
+                </button>
+            </div>
+        </form>
+    </div>
+
+    <!-- Results Box -->
+    {% if status_result %}
+        {% if status_result.found %}
+            <div style="background:white; border:1px solid var(--border-color); border-radius:var(--radius-lg); padding:2rem; box-shadow:var(--shadow-md);">
+                
+                <div style="display:flex; justify-content:space-between; align-items:flex-start; flex-wrap:wrap; gap:1rem; border-bottom:1px solid #f1f5f9; padding-bottom:1rem; margin-bottom:1.5rem;">
+                    <div>
+                        <div style="display:flex; align-items:center; gap:0.6rem; flex-wrap:wrap;">
+                            <strong style="font-size:1.3rem; color:#0f172a;">{{ status_result.full_name }}</strong>
+                            
+                            {% if status_result.role == 'doctor' %}
+                                <span class="badge" style="background:#e0f2fe; color:#0369a1; font-weight:700;">🩺 DOCTOR APPLICANT</span>
+                            {% elif status_result.role == 'pharmacist' %}
+                                <span class="badge" style="background:#ecfdf5; color:#047857; font-weight:700;">💊 PHARMACIST APPLICANT</span>
+                            {% else %}
+                                <span class="badge" style="background:#f3e8ff; color:#7e22ce; font-weight:700;">🪪 HEALTH CARD APPLICANT</span>
+                            {% endif %}
+                        </div>
+
+                        <div style="font-size:0.85rem; color:var(--text-muted); margin-top:0.35rem; display:flex; gap:1.25rem; flex-wrap:wrap;">
+                            <span>Reference ID: <code style="font-weight:700; color:#0f172a;">{{ status_result.app_no }}</code></span>
+                            <span>Locality: <strong>{{ status_result.locality or 'Pune' }}</strong></span>
+                            <span>Submitted: {{ status_result.created_at }}</span>
+                        </div>
+                    </div>
+
+                    <div>
+                        {% if status_result.status == 'pending' %}
+                            <span class="badge" style="background:#fef3c7; color:#b45309; border:1px solid #fcd34d; font-size:0.85rem; padding:0.4rem 0.85rem; font-weight:800;">
+                                ⏳ PENDING REVIEW
+                            </span>
+                        {% elif status_result.status == 'approved' %}
+                            <span class="badge" style="background:#dcfce7; color:#15803d; border:1px solid #86efac; font-size:0.85rem; padding:0.4rem 0.85rem; font-weight:800;">
+                                ✅ APPROVED
+                            </span>
+                        {% else %}
+                            <span class="badge" style="background:#fee2e2; color:#b91c1c; border:1px solid #fca5a5; font-size:0.85rem; padding:0.4rem 0.85rem; font-weight:800;">
+                                ❌ REJECTED
+                            </span>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <!-- Detailed Status Message Card -->
+                {% if status_result.status == 'approved' %}
+                    {% if status_result.role == 'patient' %}
+                        <div style="padding:1.5rem; background:#ecfdf5; border:1px solid #a7f3d0; border-radius:var(--radius-md);">
+                            <div style="font-size:1.15rem; font-weight:800; color:#065f46; margin-bottom:0.75rem; display:flex; align-items:center; gap:0.5rem;">
+                                <span>🎉</span> Application Approved — Health Card Issued!
+                            </div>
+
+                            <!-- Gmail delivery notice -->
+                            <div style="background:#f0fdf4; border:1.5px solid #86efac; border-radius:10px; padding:1.1rem 1.25rem; margin-bottom:1rem; display:flex; align-items:flex-start; gap:0.75rem;">
+                                <span style="font-size:1.6rem; line-height:1;">📧</span>
+                                <div>
+                                    <div style="font-weight:700; color:#15803d; font-size:0.95rem; margin-bottom:0.25rem;">Your Digital e-Card has been sent to your Gmail inbox!</div>
+                                    <div style="font-size:0.875rem; color:#166534; line-height:1.55;">
+                                        Open your registered email and look for a message from <strong>darksoulgamr11@gmail.com</strong>. 
+                                        The email contains your <strong>Digital Health Card image &amp; QR code</strong> and your Health Card ID.
+                                        Please check your <em>Inbox / Spam</em> folder.
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Card ID display -->
+                            <div style="font-size:0.9rem; color:#047857; margin-bottom:0.85rem;">
+                                Your Health Card Reference ID:
+                                <div style="margin-top:0.35rem;">
+                                    <code style="font-size:1.25rem; font-weight:900; background:white; color:#065f46; padding:0.35rem 0.9rem; border-radius:var(--radius-sm); border:1.5px solid #a7f3d0; display:inline-block; font-family:'Courier New', monospace; letter-spacing:0.04em;">
+                                        {{ status_result.assigned_card_id }}
+                                    </code>
+                                </div>
+                            </div>
+
+                            <!-- Physical card note -->
+                            <div style="background:#ffffff; border:1px solid #d1fae5; border-radius:var(--radius-sm); padding:0.8rem 1rem; font-size:0.85rem; color:#065f46; line-height:1.5; margin-bottom:0.75rem;">
+                                <span style="font-weight:700;">📮 Physical Card:</span> Your laminated Smart QR Card will be dispatched to your registered address via <strong>postal mail</strong> in due course.
+                            </div>
+
+                            <p style="font-size:0.82rem; color:#047857; line-height:1.5; margin:0;">
+                                🛡️ Your encrypted QR card is now active in the Pune Municipal registry. Present this ID or the emailed QR at participating clinics.
+                            </p>
+                        </div>
+                    {% else %}
+                        <div style="padding:1.5rem; background:#ecfdf5; border:1px solid #a7f3d0; border-radius:var(--radius-md);">
+                            <div style="font-size:1.1rem; font-weight:700; color:#065f46; margin-bottom:0.5rem;">
+                                🎉 Staff Accreditation Approved!
+                            </div>
+                            <div style="font-size:0.95rem; color:#047857; margin-bottom:0.75rem;">
+                                Your staff user account has been provisioned:
+                                <div style="margin-top:0.35rem;">
+                                    <code style="font-size:1.15rem; font-weight:800; background:white; color:#065f46; padding:0.35rem 0.9rem; border-radius:var(--radius-sm); border:1px solid #a7f3d0; display:inline-block;">
+                                        Username: {{ status_result.assigned_username }}
+                                    </code>
+                                </div>
+                            </div>
+                            <p style="font-size:0.85rem; color:#065f46; line-height:1.5; margin-bottom:1rem;">
+                                Please use the <strong>Staff Login</strong> link at the top of the portal to sign into your role dashboard. If you need your temporary password, please contact the System Administrator.
+                            </p>
+                            <a href="{{ url_for('auth_routes.login') }}" class="btn btn-primary btn-sm">Proceed to Staff Login →</a>
+                        </div>
+                    {% endif %}
+
+                {% elif status_result.status == 'rejected' %}
+                    <div style="padding:1.5rem; background:#fef2f2; border:1px solid #fecaca; border-radius:var(--radius-md);">
+                        <div style="font-size:1.05rem; font-weight:700; color:#991b1b; margin-bottom:0.4rem;">
+                            Application Not Approved
+                        </div>
+                        <p style="font-size:0.9rem; color:#b91c1c; line-height:1.5; margin:0;">
+                            <strong>Review Remarks:</strong> {{ status_result.admin_notes or 'Credentials could not be verified with regulatory council.' }}
+                        </p>
+                        <p style="font-size:0.82rem; color:#991b1b; margin-top:0.75rem; margin-bottom:0;">
+                            You may submit a fresh application with corrected information or contact the Pune Municipal Health Helpdesk.
+                        </p>
+                    </div>
+
+                {% else %}
+                    <div style="padding:1.5rem; background:#fffbeb; border:1px solid #fde68a; border-radius:var(--radius-md);">
+                        <div style="font-size:1.05rem; font-weight:700; color:#b45309; margin-bottom:0.4rem;">
+                            Verification Queued
+                        </div>
+                        <p style="font-size:0.9rem; color:#92400e; line-height:1.5; margin:0;">
+                            Your application is currently pending verification by the System Administration team. State council credentials and demographic identities are screened manually before approval.
+                        </p>
+                        <div style="font-size:0.82rem; color:#b45309; margin-top:0.75rem;">
+                            ⏱️ Typical verification turnaround: 24–48 hours. Please check back later.
+                        </div>
+                    </div>
+                {% endif %}
+
+            </div>
+
+        {% else %}
+            <div style="background:white; border:1px solid #fecaca; border-radius:var(--radius-lg); padding:2.5rem; text-align:center; box-shadow:var(--shadow-sm);">
+                <div style="font-size:2.5rem; margin-bottom:0.5rem;">🔍</div>
+                <h3 style="font-size:1.2rem; font-weight:700; color:#b91c1c; margin-bottom:0.35rem;">
+                    No Application Found
+                </h3>
+                <p style="color:#991b1b; font-size:0.9rem; max-width:500px; margin:0 auto;">
+                    We could not find any pending or approved application matching <code>{{ status_result.query }}</code>. Please ensure you entered the exact Application Reference ID or 10-digit mobile number.
+                </p>
+            </div>
+        {% endif %}
+    {% endif %}
+
+</div>
+{% endblock %}

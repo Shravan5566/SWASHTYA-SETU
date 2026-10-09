@@ -1,31 +1,51 @@
+# Node & Frontend
 node_modules/
 dist/
 build/
 .cache/
-.env*
 .vite/
 vite.config.*.timestamp-*
 *.tsbuildinfo
 *-debug.log*
-logs/
-*.log
 .claude-replay.*
 .tmp-*
 /.figma/design-context/
-
-# Platform-managed agentplat state, not project source. In the
-# client-initiated single-repo workspace layout (make's `Path: "."` spec) the
-# repo root IS the workspace root, so these land inside this repo rather than
-# beside it.
 /.plugins/
 /.opencode-skills/
 
-# Python virtual environment & database exclusions
+# Python & Backend
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+*.egg
+*.egg-info/
+.eggs/
+
+# Virtual environments
+venv/
 .venv/
 **/.venv/
-**/__pycache__/
-*.pyc
+env/
+.env*
+
+# Flask / project secrets & databases
+instance/
+**/instance/
+.webassets-cache
+*.db
 *.sqlite
 *.sqlite3
-**/instance/
 
+# IDE
+.vscode/
+.idea/
+*.swp
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
+logs/
+*.log
