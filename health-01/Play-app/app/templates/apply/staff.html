@@ -1,0 +1,181 @@
+{% extends "base.html" %}
+
+{% block title %}Apply for Staff Accreditation (Doctor / Pharmacist) — Swasthya Setu{% endblock %}
+
+{% block content %}
+<div style="max-width:900px; margin:0 auto; padding:1.5rem 1rem 3.5rem;">
+
+    <!-- Top Breadcrumb Navigation -->
+    <div style="margin-bottom:1.5rem;">
+        <a href="{{ url_for('index') }}" style="color:var(--primary); font-size:0.9rem; text-decoration:none; font-weight:600; display:inline-flex; align-items:center; gap:0.35rem;">
+            ← Back to Home
+        </a>
+    </div>
+
+    <!-- Page Header Card -->
+    <div style="background:white; border:1px solid var(--border-color); border-radius:var(--radius-lg); padding:2rem; margin-bottom:2rem; box-shadow:var(--shadow-sm);">
+        <div style="display:flex; align-items:center; gap:0.75rem; margin-bottom:0.5rem;">
+            <span style="font-size:2rem;">🩺</span>
+            <div>
+                <h1 style="font-size:1.75rem; font-weight:800; color:#0f172a; margin:0;">
+                    Healthcare Professional Accreditation Application
+                </h1>
+                <div style="font-size:0.85rem; color:var(--text-muted); margin-top:0.25rem;">
+                    Clinical &amp; Dispensary Staff Provisioning — Pune Municipal Health Network
+                </div>
+            </div>
+        </div>
+        <p style="color:var(--text-muted); font-size:0.95rem; line-height:1.6; margin-top:0.75rem;">
+            Apply for authorized credentials as a <strong>Doctor (Clinical Care)</strong> or <strong>Pharmacist (Dispensary)</strong>. All applications undergo verification against the Maharashtra Medical Council (MMC) or State Pharmacy Council (MSPC) registries by System Administrators.
+        </p>
+        <div style="margin-top:1rem; padding:0.75rem 1rem; background:#fffbeb; border:1px solid #fde68a; border-radius:var(--radius-sm); font-size:0.85rem; color:#92400e;">
+            🛡️ <strong>Note on Administrative Roles:</strong> <em>Public Health Administrator</em> accounts are restricted government surveillance roles and cannot be requested online. They are provisioned exclusively by Central Municipal Administrators.
+        </div>
+    </div>
+
+    <!-- Application Form Container -->
+    <div style="background:white; border:1px solid var(--border-color); border-radius:var(--radius-lg); padding:2.25rem 2rem; box-shadow:var(--shadow-md);">
+        
+        <form method="POST" action="{{ url_for('application_routes.apply_staff') }}">
+
+            <!-- Role Choice -->
+            <div style="margin-bottom:2rem;">
+                <label class="form-label" style="font-weight:700; font-size:0.95rem; color:#0f172a;">Select Staff Accreditation Role <span style="color:#ef4444;">*</span></label>
+                <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(260px, 1fr)); gap:1rem; margin-top:0.5rem;">
+                    <label style="border:2px solid var(--primary); border-radius:var(--radius-md); padding:1.25rem; display:flex; align-items:center; gap:0.75rem; cursor:pointer;" id="label-role-doctor">
+                        <input type="radio" name="role" value="doctor" checked onchange="updateStaffForm('doctor')">
+                        <div>
+                            <strong style="color:#0284c7; font-size:1.05rem;">🩺 Doctor (Clinical Care)</strong>
+                            <div style="font-size:0.82rem; color:var(--text-muted); margin-top:0.2rem;">Full clinical access with patient OTP, AI visit summaries &amp; longitudinal history.</div>
+                        </div>
+                    </label>
+
+                    <label style="border:2px solid var(--border-color); border-radius:var(--radius-md); padding:1.25rem; display:flex; align-items:center; gap:0.75rem; cursor:pointer;" id="label-role-pharmacist">
+                        <input type="radio" name="role" value="pharmacist" onchange="updateStaffForm('pharmacist')">
+                        <div>
+                            <strong style="color:#059669; font-size:1.05rem;">💊 Pharmacist (Dispensary)</strong>
+                            <div style="font-size:0.82rem; color:var(--text-muted); margin-top:0.2rem;">Instant QR card lookup for prescription dispensing; clinical notes strictly isolated.</div>
+                        </div>
+                    </label>
+                </div>
+            </div>
+
+            <!-- Section 1: Personal Details -->
+            <div style="margin-bottom:2rem;">
+                <h2 style="font-size:1rem; font-weight:700; color:var(--primary); text-transform:uppercase; letter-spacing:0.04em; margin-bottom:1rem; border-bottom:1px solid #f1f5f9; padding-bottom:0.5rem;">
+                    1. Personal &amp; Contact Information
+                </h2>
+                <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(240px, 1fr)); gap:1.25rem;">
+                    <div class="form-group" style="margin-bottom:0;">
+                        <label class="form-label">Full Legal Name <span style="color:#ef4444;">*</span></label>
+                        <input type="text" name="full_name" class="form-control" placeholder="e.g. Dr. Rajesh Kulkarni" required>
+                    </div>
+                    <div class="form-group" style="margin-bottom:0;">
+                        <label class="form-label">Professional Email Address <span style="color:#ef4444;">*</span></label>
+                        <input type="email" name="email" class="form-control" placeholder="e.g. r.kulkarni@hospital.org" required>
+                    </div>
+                    <div class="form-group" style="margin-bottom:0;">
+                        <label class="form-label">Mobile Phone Number <span style="color:#ef4444;">*</span></label>
+                        <input type="tel" name="phone" class="form-control" placeholder="10-digit mobile number" pattern="[0-9]{10}" required>
+                    </div>
+                    <div class="form-group" style="margin-bottom:0;">
+                        <label class="form-label">Government ID Number (Aadhaar / PAN) <span style="color:#ef4444;">*</span></label>
+                        <input type="text" name="gov_id_number" class="form-control" placeholder="e.g. PAN or Aadhaar" required>
+                        <input type="hidden" name="gov_id_type" value="Aadhaar/PAN">
+                    </div>
+                </div>
+            </div>
+
+            <!-- Section 2: Professional Accreditation -->
+            <div style="margin-bottom:2rem;">
+                <h2 style="font-size:1rem; font-weight:700; color:var(--primary); text-transform:uppercase; letter-spacing:0.04em; margin-bottom:1rem; border-bottom:1px solid #f1f5f9; padding-bottom:0.5rem;">
+                    2. Council Registration &amp; Medical Qualifications
+                </h2>
+                <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(240px, 1fr)); gap:1.25rem;">
+                    <div class="form-group" style="margin-bottom:0;">
+                        <label class="form-label" id="label-council-reg">State Medical Council Registration No. <span style="color:#ef4444;">*</span></label>
+                        <input type="text" name="council_reg_no" class="form-control" placeholder="e.g. MMC-2017-08391" required>
+                    </div>
+                    <div class="form-group" style="margin-bottom:0;">
+                        <label class="form-label">Highest Degree / Qualification <span style="color:#ef4444;">*</span></label>
+                        <input type="text" name="qualification" class="form-control" placeholder="e.g. MBBS, MD (General Medicine), B.Pharm" required>
+                    </div>
+                    <div class="form-group" style="margin-bottom:0;">
+                        <label class="form-label">Specialization / Department</label>
+                        <input type="text" name="specialization" class="form-control" placeholder="e.g. General Medicine, Pediatrics, Pharmacology">
+                    </div>
+                    <div class="form-group" style="margin-bottom:0;">
+                        <label class="form-label">Years of Active Experience <span style="color:#ef4444;">*</span></label>
+                        <input type="number" name="experience_years" class="form-control" placeholder="e.g. 7" min="0" max="60" required>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Section 3: Practice Workplace in Pune -->
+            <div style="margin-bottom:2rem;">
+                <h2 style="font-size:1rem; font-weight:700; color:var(--primary); text-transform:uppercase; letter-spacing:0.04em; margin-bottom:1rem; border-bottom:1px solid #f1f5f9; padding-bottom:0.5rem;">
+                    3. Workplace &amp; Clinical Facility in Pune
+                </h2>
+                <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(240px, 1fr)); gap:1.25rem;">
+                    <div class="form-group" style="margin-bottom:0;">
+                        <label class="form-label">Hospital / Clinic / Pharmacy Store Name <span style="color:#ef4444;">*</span></label>
+                        <input type="text" name="workplace_name" class="form-control" placeholder="e.g. Deenanath Mangeshkar Hospital / Apollo Pharmacy" required>
+                    </div>
+                    <div class="form-group" style="margin-bottom:0;">
+                        <label class="form-label">Pune Locality / Ward <span style="color:#ef4444;">*</span></label>
+                        <select name="locality" class="form-control" required>
+                            <option value="" disabled selected>Select Workplace Locality</option>
+                            {% for loc in pune_localities %}
+                            <option value="{{ loc }}">{{ loc }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="form-group" style="margin-bottom:0; grid-column:span 2;">
+                        <label class="form-label">Facility Street Address <span style="color:#ef4444;">*</span></label>
+                        <input type="text" name="workplace_address" class="form-control" placeholder="e.g. Plot 42, Erandwane, Paud Road, Pune 411038" required>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Declaration Box -->
+            <div style="background:#f8fafc; border:1px solid #e2e8f0; border-radius:var(--radius-sm); padding:1.25rem; margin-bottom:2rem;">
+                <label style="display:flex; align-items:flex-start; gap:0.75rem; font-size:0.875rem; cursor:pointer;">
+                    <input type="checkbox" required style="margin-top:0.25rem;">
+                    <span>
+                        I declare that I hold an active, valid license in good standing with the respective regulatory council (MMC or MSPC). I agree to abide by the Swasthya Setu cryptographic privacy guidelines, patient confidentiality, and the 24-hour clinical record integrity lock.
+                    </span>
+                </label>
+            </div>
+
+            <!-- Action Buttons -->
+            <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:1rem;">
+                <a href="{{ url_for('index') }}" class="btn btn-outline">Cancel</a>
+                <button type="submit" class="btn btn-primary" style="padding:0.75rem 2.5rem; font-size:1rem; font-weight:700;">
+                    Submit Staff Accreditation Application →
+                </button>
+            </div>
+
+        </form>
+
+    </div>
+
+</div>
+
+<script>
+function updateStaffForm(role) {
+    const councilLabel = document.getElementById('label-council-reg');
+    const doctorLabel = document.getElementById('label-role-doctor');
+    const pharmaLabel = document.getElementById('label-role-pharmacist');
+
+    if (role === 'doctor') {
+        councilLabel.innerHTML = 'State Medical Council Registration No. <span style="color:#ef4444;">*</span>';
+        doctorLabel.style.borderColor = 'var(--primary)';
+        pharmaLabel.style.borderColor = 'var(--border-color)';
+    } else {
+        councilLabel.innerHTML = 'State Pharmacy Council Registration No. <span style="color:#ef4444;">*</span>';
+        pharmaLabel.style.borderColor = 'var(--accent)';
+        doctorLabel.style.borderColor = 'var(--border-color)';
+    }
+}
+</script>
+{% endblock %}

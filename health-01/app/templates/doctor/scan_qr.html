@@ -1,0 +1,107 @@
+{% extends "base.html" %}
+{% block title %}Scan Patient Card{% endblock %}
+
+{% block content %}
+<div class="dashboard-container" style="max-width:620px; margin:0 auto;">
+    <h1 class="dashboard-title">📷 Scan Patient Card</h1>
+    <p style="color:var(--text-muted); margin-bottom:1.25rem;">
+        Scan patient digital QR card via webcam, upload an encrypted card file, or select from active OPD roster.
+    </p>
+
+    <!-- Active OPD Patient Roster Queue -->
+    <div style="background:#ffffff; border:1px solid #e2e8f0; border-radius:12px; padding:12px 16px; margin-bottom:1.25rem; box-shadow:0 1px 3px rgba(0,0,0,0.04);">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
+            <div style="font-size:0.78rem; font-weight:700; color:#0f172a; display:flex; align-items:center; gap:6px;">
+                <span style="display:inline-block; width:8px; height:8px; border-radius:50%; background:#0284c7;"></span>
+                Active OPD Registry Roster (Fast-Track Check-In)
+            </div>
+            <span style="font-size:0.73rem; color:#64748b; font-weight:600;">Shift: Morning General OPD</span>
+        </div>
+        <div style="display:flex; flex-wrap:wrap; gap:8px;">
+            <button type="button" onclick="window.quickSelectPatient('SS-TEST-001')" class="btn btn-sm" style="background:#f8fafc; border:1px solid #cbd5e1; color:#0f172a; font-weight:600; padding:6px 12px; border-radius:6px; cursor:pointer; font-size:0.82rem;">
+                📋 Meera Joshi <span style="color:#64748b; font-size:0.75rem;">(Card: SS-TEST-001 · Shivajinagar)</span>
+            </button>
+            <button type="button" onclick="window.quickSelectPatient('SS-TEST-002')" class="btn btn-sm" style="background:#f8fafc; border:1px solid #cbd5e1; color:#0f172a; font-weight:600; padding:6px 12px; border-radius:6px; cursor:pointer; font-size:0.82rem;">
+                📋 Arjun Sharma <span style="color:#64748b; font-size:0.75rem;">(Card: SS-TEST-002 · Kothrud)</span>
+            </button>
+            <button type="button" onclick="window.quickSelectPatient('SS-TEST-003')" class="btn btn-sm" style="background:#f8fafc; border:1px solid #cbd5e1; color:#0f172a; font-weight:600; padding:6px 12px; border-radius:6px; cursor:pointer; font-size:0.82rem;">
+                📋 Priya Sen <span style="color:#64748b; font-size:0.75rem;">(Card: SS-TEST-003 · Katraj)</span>
+            </button>
+        </div>
+    </div>
+
+    <!-- Official Html5QrcodeScanner Container -->
+    <div id="reader" style="width:100%; min-height:280px; background:#f8fafc; border:2px dashed #cbd5e1; border-radius:var(--radius-lg); overflow:hidden; margin-bottom:1rem; padding:10px;"></div>
+
+    <!-- Status message -->
+    <p id="qr-status" class="qr-status qr-status--info" style="text-align:center; font-size:0.92rem; min-height:1.4em; margin-bottom:1rem; font-weight:600;">
+        Ready to scan.
+    </p>
+
+    <!-- Divider -->
+    <div style="display:flex; align-items:center; gap:0.75rem; margin:1rem 0;">
+        <div style="flex:1; height:1px; background:var(--border-color);"></div>
+        <span style="font-size:0.8rem; color:var(--text-muted); white-space:nowrap;">or enter manually</span>
+        <div style="flex:1; height:1px; background:var(--border-color);"></div>
+    </div>
+
+    <!-- Manual fallback -->
+    <div style="display:flex; gap:0.75rem;">
+        <input id="manual-card-id" type="text" class="form-control" placeholder="Card ID  e.g. SS-TEST-001" autocomplete="off">
+        <button id="manual-submit-btn" class="btn btn-primary" style="white-space:nowrap;">Look Up Patient</button>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<!-- Universal HTML5 QR code scanning engine -->
+<script src="{{ url_for('static', filename='js/html5-qrcode.min.js') }}"></script>
+<script src="{{ url_for('static', filename='js/qr_scanner.js') }}"></script>
+<style>
+.qr-status--info  { color: #0284c7; }
+.qr-status--error { color: #dc2626; }
+
+/* Custom styles for Html5QrcodeScanner UI */
+#reader button {
+    background: #0284c7;
+    color: white;
+    border: none;
+    padding: 8px 16px;
+    border-radius: 6px;
+    font-weight: 600;
+    font-size: 0.88rem;
+    cursor: pointer;
+    margin: 6px 4px;
+}
+#reader button:hover {
+    background: #0369a1;
+}
+#reader select {
+    padding: 6px 12px;
+    border-radius: 6px;
+    border: 1px solid #cbd5e1;
+    font-size: 0.88rem;
+    margin: 6px 4px;
+    background: white;
+}
+#reader a {
+    color: #0284c7;
+    font-weight: 600;
+    text-decoration: underline;
+    font-size: 0.88rem;
+}
+#reader video {
+    border-radius: 10px;
+    max-width: 100%;
+}
+#reader__scan_region {
+    background: #0f172a;
+    border-radius: 10px;
+    overflow: hidden;
+}
+#reader__dashboard {
+    padding-top: 10px;
+    text-align: center;
+}
+</style>
+{% endblock %}

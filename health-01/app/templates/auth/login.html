@@ -1,0 +1,74 @@
+{% extends "base.html" %}
+
+{% block title %}Staff Login{% endblock %}
+
+{% block content %}
+<div class="auth-wrapper">
+    <div class="auth-card">
+        <div class="auth-header">
+            <h1>Staff Sign In</h1>
+            <p class="auth-subtitle">Healthcare &amp; Administration Access Portal</p>
+        </div>
+
+        <form method="POST" action="{{ url_for('auth_routes.login') }}" class="auth-form">
+            <div class="form-group">
+                <label for="username" class="form-label">Username</label>
+                <input 
+                    type="text" 
+                    id="username" 
+                    name="username" 
+                    class="form-control" 
+                    placeholder="e.g. dr_sharma" 
+                    required 
+                    autofocus
+                    autocomplete="username"
+                >
+            </div>
+
+            <div class="form-group">
+                <label for="password" class="form-label">Password</label>
+                <input 
+                    type="password" 
+                    id="password" 
+                    name="password" 
+                    class="form-control" 
+                    placeholder="Enter your password" 
+                    required 
+                    autocomplete="current-password"
+                >
+            </div>
+
+            <button type="submit" class="btn btn-primary btn-block">Authenticate &amp; Sign In</button>
+        </form>
+
+        <!-- Official Accredited Credentials Quick-Reference -->
+        <div style="margin-top: 1.5rem; padding-top: 1.25rem; border-top: 1px solid #f1f5f9;">
+            <div style="font-size: 0.73rem; font-weight: 700; color: #64748b; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 0.6rem;">
+                Official Practitioner Portals (Pass: <code>password123</code>):
+            </div>
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 6px; font-size: 0.78rem;">
+                <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 6px; padding: 6px 8px;">
+                    <strong style="color: #0284c7; display: block;">🩺 Doctor OPD</strong>
+                    <code style="color: #0f172a;">dr.aisha.verma</code>
+                </div>
+                <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 6px; padding: 6px 8px;">
+                    <strong style="color: #15803d; display: block;">💊 Pharmacist</strong>
+                    <code style="color: #0f172a;">rahul.patel</code>
+                </div>
+                <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 6px; padding: 6px 8px;">
+                    <strong style="color: #b45309; display: block;">📊 Epidemiologist</strong>
+                    <code style="color: #0f172a;">priya.nair</code>
+                </div>
+                <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 6px; padding: 6px 8px;">
+                    <strong style="color: #7c3aed; display: block;">🛡️ System Admin</strong>
+                    <code style="color: #0f172a;">vikram.rao</code>
+                </div>
+            </div>
+        </div>
+
+        <div class="auth-footer" style="margin-top: 1rem;">
+            <p style="font-size: 0.75rem; color: #64748b; margin: 0;">🔒 National Digital Health Mission (NDHM) &amp; DPDP Act 2023 Compliant. Immutable audit log active.</p>
+        </div>
+    </div>
+</div>
+{% endblock %}

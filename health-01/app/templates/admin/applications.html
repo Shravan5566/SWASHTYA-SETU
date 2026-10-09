@@ -1,0 +1,261 @@
+{% extends "base.html" %}
+{% block title %}Screen Public Applications — System Administration{% endblock %}
+
+{% block content %}
+<div class="dashboard-container" style="max-width:1200px; margin:0 auto; padding-bottom:3rem;">
+
+    <!-- Navigation Header -->
+    <div style="margin-bottom:1.5rem;">
+        <a href="{{ url_for('admin_routes.dashboard') }}" style="color:var(--primary); font-size:0.875rem; text-decoration:none; font-weight:600;">
+            ← Back to Admin Dashboard
+        </a>
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-top:0.5rem; flex-wrap:wrap; gap:1rem;">
+            <div>
+                <h1 class="dashboard-title" style="margin-bottom:0.25rem;">📋 Applications Screening & Verification</h1>
+                <p style="color:var(--text-muted); font-size:0.95rem;">
+                    Screen and verify public submissions for Healthcare Staff (Doctors &amp; Pharmacists) and Digital Health Cards (Patients).
+                </p>
+            </div>
+            <div style="display:flex; gap:0.5rem;">
+                <a href="{{ url_for('admin_routes.manage_users') }}" class="btn btn-outline btn-sm">👥 Manage Staff Directly</a>
+                <a href="{{ url_for('admin_routes.register_patient') }}" class="btn btn-primary btn-sm">➕ Issue Card Directly</a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Metrics Bar -->
+    <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(180px, 1fr)); gap:1rem; margin-bottom:1.75rem;">
+        <div style="background:white; border:1px solid var(--border-color); border-radius:var(--radius-md); padding:1rem 1.25rem;">
+            <div style="font-size:0.75rem; color:var(--text-muted); font-weight:700; text-transform:uppercase;">Total Applications</div>
+            <div style="font-size:1.6rem; font-weight:800; color:#0f172a; margin-top:0.25rem;">{{ counts.all }}</div>
+            <div style="font-size:0.75rem; color:#64748b; margin-top:0.15rem;">All roles combined</div>
+        </div>
+
+        <div style="background:{% if counts.pending > 0 %}#fffbeb{% else %}white{% endif %}; border:1px solid {% if counts.pending > 0 %}#fcd34d{% else %}var(--border-color){% endif %}; border-radius:var(--radius-md); padding:1rem 1.25rem;">
+            <div style="font-size:0.75rem; color:{% if counts.pending > 0 %}#b45309{% else %}var(--text-muted){% endif %}; font-weight:700; text-transform:uppercase;">Pending Review</div>
+            <div style="font-size:1.6rem; font-weight:800; color:{% if counts.pending > 0 %}#d97706{% else %}#64748b{% endif %}; margin-top:0.25rem;">{{ counts.pending }}</div>
+            <div style="font-size:0.75rem; color:#b45309; margin-top:0.15rem;">Requires verification</div>
+        </div>
+
+        <div style="background:white; border:1px solid var(--border-color); border-radius:var(--radius-md); padding:1rem 1.25rem;">
+            <div style="font-size:0.75rem; color:var(--text-muted); font-weight:700; text-transform:uppercase;">Approved</div>
+            <div style="font-size:1.6rem; font-weight:800; color:#16a34a; margin-top:0.25rem;">{{ counts.approved }}</div>
+            <div style="font-size:0.75rem; color:#16a34a; margin-top:0.15rem;">Credentials/Cards active</div>
+        </div>
+
+        <div style="background:white; border:1px solid var(--border-color); border-radius:var(--radius-md); padding:1rem 1.25rem;">
+            <div style="font-size:0.75rem; color:var(--text-muted); font-weight:700; text-transform:uppercase;">Rejected</div>
+            <div style="font-size:1.6rem; font-weight:800; color:#dc2626; margin-top:0.25rem;">{{ counts.rejected }}</div>
+            <div style="font-size:0.75rem; color:#dc2626; margin-top:0.15rem;">Invalid credentials</div>
+        </div>
+    </div>
+
+    <!-- Filter Hub -->
+    <div style="background:white; border:1px solid var(--border-color); border-radius:var(--radius-md); padding:1rem 1.25rem; margin-bottom:1.5rem; display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:1rem;">
+        <!-- Status Pills -->
+        <div style="display:flex; gap:0.5rem; flex-wrap:wrap; align-items:center;">
+            <span style="font-size:0.8rem; font-weight:700; color:var(--text-muted); margin-right:0.25rem;">STATUS:</span>
+            <a href="{{ url_for('admin_routes.applications', status='all', role=current_role) }}" 
+               class="badge {% if current_status == 'all' %}badge-role{% endif %}" 
+               style="text-decoration:none; padding:0.35rem 0.75rem; border:1px solid var(--border-color); font-size:0.8rem;">
+               All ({{ counts.all }})
+            </a>
+            <a href="{{ url_for('admin_routes.applications', status='pending', role=current_role) }}" 
+               class="badge" 
+               style="text-decoration:none; padding:0.35rem 0.75rem; border:1px solid var(--border-color); font-size:0.8rem; {% if current_status == 'pending' %}background:#fef3c7; color:#b45309; border-color:#fcd34d; font-weight:800;{% endif %}">
+               Pending ({{ counts.pending }})
+            </a>
+            <a href="{{ url_for('admin_routes.applications', status='approved', role=current_role) }}" 
+               class="badge" 
+               style="text-decoration:none; padding:0.35rem 0.75rem; border:1px solid var(--border-color); font-size:0.8rem; {% if current_status == 'approved' %}background:#dcfce7; color:#15803d; border-color:#86efac; font-weight:800;{% endif %}">
+               Approved ({{ counts.approved }})
+            </a>
+            <a href="{{ url_for('admin_routes.applications', status='rejected', role=current_role) }}" 
+               class="badge" 
+               style="text-decoration:none; padding:0.35rem 0.75rem; border:1px solid var(--border-color); font-size:0.8rem; {% if current_status == 'rejected' %}background:#fee2e2; color:#b91c1c; border-color:#fca5a5; font-weight:800;{% endif %}">
+               Rejected ({{ counts.rejected }})
+            </a>
+        </div>
+
+        <!-- Role Pills -->
+        <div style="display:flex; gap:0.5rem; flex-wrap:wrap; align-items:center;">
+            <span style="font-size:0.8rem; font-weight:700; color:var(--text-muted); margin-right:0.25rem;">CATEGORY:</span>
+            <a href="{{ url_for('admin_routes.applications', status=current_status, role='all') }}" 
+               class="badge {% if current_role == 'all' %}badge-role{% endif %}" 
+               style="text-decoration:none; padding:0.35rem 0.75rem; border:1px solid var(--border-color); font-size:0.8rem;">
+               All Roles
+            </a>
+            <a href="{{ url_for('admin_routes.applications', status=current_status, role='doctor') }}" 
+               class="badge" 
+               style="text-decoration:none; padding:0.35rem 0.75rem; border:1px solid var(--border-color); font-size:0.8rem; {% if current_role == 'doctor' %}background:#e0f2fe; color:#0369a1; font-weight:800;{% endif %}">
+               🩺 Doctors ({{ counts.doctor }})
+            </a>
+            <a href="{{ url_for('admin_routes.applications', status=current_status, role='pharmacist') }}" 
+               class="badge" 
+               style="text-decoration:none; padding:0.35rem 0.75rem; border:1px solid var(--border-color); font-size:0.8rem; {% if current_role == 'pharmacist' %}background:#ecfdf5; color:#047857; font-weight:800;{% endif %}">
+               💊 Pharmacists ({{ counts.pharmacist }})
+            </a>
+            <a href="{{ url_for('admin_routes.applications', status=current_status, role='patient') }}" 
+               class="badge" 
+               style="text-decoration:none; padding:0.35rem 0.75rem; border:1px solid var(--border-color); font-size:0.8rem; {% if current_role == 'patient' %}background:#f3e8ff; color:#7e22ce; font-weight:800;{% endif %}">
+               🪪 Health Cards ({{ counts.patient }})
+            </a>
+        </div>
+    </div>
+
+    <!-- Application List -->
+    {% if applications %}
+        <div style="display:flex; flex-direction:column; gap:1.25rem;">
+            {% for app in applications %}
+                <div style="background:white; border:1px solid var(--border-color); border-radius:var(--radius-md); padding:1.5rem; box-shadow:0 1px 3px rgba(0,0,0,0.04);">
+                    
+                    <!-- Card Top Line -->
+                    <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:1rem; flex-wrap:wrap; gap:0.75rem;">
+                        <div>
+                            <div style="display:flex; align-items:center; gap:0.6rem; flex-wrap:wrap;">
+                                <strong style="font-size:1.15rem; color:#0f172a;">{{ app.full_name }}</strong>
+                                
+                                {% if app.role == 'doctor' %}
+                                    <span class="badge" style="background:#e0f2fe; color:#0369a1;">🩺 DOCTOR APPLICANT</span>
+                                {% elif app.role == 'pharmacist' %}
+                                    <span class="badge" style="background:#ecfdf5; color:#047857;">💊 PHARMACIST APPLICANT</span>
+                                {% else %}
+                                    <span class="badge" style="background:#f3e8ff; color:#7e22ce;">🪪 HEALTH CARD APPLICANT</span>
+                                {% endif %}
+
+                                {% if app.status == 'pending' %}
+                                    <span class="badge" style="background:#fef3c7; color:#b45309; border:1px solid #fcd34d;">⏳ PENDING SCREENING</span>
+                                {% elif app.status == 'approved' %}
+                                    <span class="badge" style="background:#dcfce7; color:#15803d; border:1px solid #86efac;">✅ APPROVED</span>
+                                {% else %}
+                                    <span class="badge" style="background:#fee2e2; color:#b91c1c; border:1px solid #fca5a5;">❌ REJECTED</span>
+                                {% endif %}
+                            </div>
+
+                            <div style="font-size:0.82rem; color:var(--text-muted); margin-top:0.35rem; display:flex; gap:1rem; flex-wrap:wrap;">
+                                <span>Ref: <strong style="color:#0f172a;">{{ app.app_no }}</strong></span>
+                                <span>Submitted: {{ app.created_at.strftime("%d %b %Y, %I:%M %p") }}</span>
+                                <span>Pune Ward: <strong style="color:var(--primary);">{{ app.locality or 'Not Specified' }}</strong></span>
+                            </div>
+                        </div>
+
+                        <!-- Action Controls for Pending -->
+                        {% if app.status == 'pending' %}
+                            <div style="display:flex; gap:0.5rem; align-items:center;">
+                                <form method="POST" action="{{ url_for('admin_routes.approve_application', app_id=app.id) }}" onsubmit="return confirm('Approve this application and issue credentials/card?');">
+                                    <button type="submit" class="btn btn-primary btn-sm" style="background:#16a34a; border-color:#16a34a; padding:0.45rem 1rem;">
+                                        ✓ Approve &amp; Provision
+                                    </button>
+                                </form>
+
+                                <button type="button" class="btn btn-outline btn-sm" style="color:#dc2626; border-color:#fca5a5; padding:0.45rem 0.8rem;" onclick="document.getElementById('reject-box-{{ app.id }}').style.display = document.getElementById('reject-box-{{ app.id }}').style.display === 'none' ? 'block' : 'none';">
+                                    ✗ Reject
+                                </button>
+                            </div>
+                        {% endif %}
+                    </div>
+
+                    <!-- Details Grid -->
+                    <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(240px, 1fr)); gap:1rem; padding:1rem; background:#f8fafc; border-radius:var(--radius-sm); border:1px solid #e2e8f0; font-size:0.875rem;">
+                        
+                        <!-- Contact & Identity -->
+                        <div>
+                            <div style="font-size:0.75rem; font-weight:700; color:var(--text-muted); text-transform:uppercase; margin-bottom:0.4rem;">Contact &amp; ID</div>
+                            <div>📞 <strong>Phone:</strong> {{ app.phone }}</div>
+                            <div>✉️ <strong>Email:</strong> {{ app.email or 'N/A' }}</div>
+                            <div>🆔 <strong>Govt ID:</strong> {{ app.gov_id_type or 'Govt ID' }} — {{ app.gov_id_number or 'Not provided' }}</div>
+                            <div>📍 <strong>Address:</strong> {{ app.address or 'Pune' }}</div>
+                        </div>
+
+                        <!-- If Doctor / Pharmacist: Council & Experience -->
+                        {% if app.role in ['doctor', 'pharmacist'] %}
+                            <div>
+                                <div style="font-size:0.75rem; font-weight:700; color:var(--text-muted); text-transform:uppercase; margin-bottom:0.4rem;">Council Accreditation</div>
+                                <div>📜 <strong>Registration No:</strong> <code style="background:#e2e8f0; padding:2px 6px; border-radius:4px; font-weight:700;">{{ app.council_reg_no }}</code></div>
+                                <div>🎓 <strong>Degree:</strong> {{ app.qualification or 'Certified' }}</div>
+                                <div>🔬 <strong>Specialization:</strong> {{ app.specialization or 'General Practice' }}</div>
+                                <div>⏳ <strong>Experience:</strong> {{ app.experience_years or '1+' }} years</div>
+                            </div>
+
+                            <div>
+                                <div style="font-size:0.75rem; font-weight:700; color:var(--text-muted); text-transform:uppercase; margin-bottom:0.4rem;">Workplace Practice</div>
+                                <div>🏥 <strong>Facility Name:</strong> {{ app.workplace_name or 'Clinic / Dispensary' }}</div>
+                                <div>📌 <strong>Facility Address:</strong> {{ app.workplace_address or app.locality }}</div>
+                                <div>🏙️ <strong>Locality:</strong> {{ app.locality }}</div>
+                            </div>
+
+                        <!-- If Patient: Medical Profile -->
+                        {% else %}
+                            <div>
+                                <div style="font-size:0.75rem; font-weight:700; color:var(--text-muted); text-transform:uppercase; margin-bottom:0.4rem;">Demographics</div>
+                                <div>🎂 <strong>DOB:</strong> {{ app.dob or 'N/A' }}</div>
+                                <div>⚧ <strong>Gender:</strong> {{ app.gender or 'N/A' }}</div>
+                                <div>🩸 <strong>Blood Group:</strong> <span class="badge" style="background:#fee2e2; color:#b91c1c; font-weight:800;">{{ app.blood_group or 'Unknown' }}</span></div>
+                            </div>
+
+                            <div>
+                                <div style="font-size:0.75rem; font-weight:700; color:var(--text-muted); text-transform:uppercase; margin-bottom:0.4rem;">Emergency &amp; Medical</div>
+                                <div>🚨 <strong>Emergency:</strong> {{ app.emergency_name or 'N/A' }} ({{ app.emergency_relation or 'Contact' }}) - {{ app.emergency_phone or 'N/A' }}</div>
+                                <div>⚠️ <strong>Chronic Conditions:</strong> {{ app.chronic_conditions or 'None reported' }}</div>
+                                <div>🚫 <strong>Allergies:</strong> {{ app.allergies or 'None reported' }}</div>
+                            </div>
+                        {% endif %}
+                    </div>
+
+                    <!-- Approved Details Banner -->
+                    {% if app.status == 'approved' %}
+                        <div style="margin-top:1rem; padding:0.85rem 1rem; background:#ecfdf5; border:1px solid #a7f3d0; border-radius:var(--radius-sm); display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:0.5rem; font-size:0.875rem;">
+                            <div>
+                                <strong style="color:#065f46;">Account / Card Active:</strong>
+                                {% if app.role in ['doctor', 'pharmacist'] %}
+                                    <span style="margin-left:0.5rem; color:#047857;">
+                                        Username: <code>{{ app.assigned_username }}</code> | 
+                                        Temporary Password: <code>{{ app.assigned_password or 'Swasthya@2026' }}</code>
+                                    </span>
+                                {% else %}
+                                    <span style="margin-left:0.5rem; color:#047857; display:inline-flex; align-items:center; gap:0.5rem;">
+                                        Health Card ID: <code>{{ app.assigned_card_id }}</code>
+                                        <a href="{{ url_for('application_routes.download_ecard', q=app.assigned_card_id) }}" target="_blank" class="btn btn-outline btn-sm" style="font-size:0.75rem; padding:0.2rem 0.6rem; color:#065f46; border-color:#86efac; background:white;">
+                                            🖨️ View e-Card
+                                        </a>
+                                    </span>
+                                {% endif %}
+                            </div>
+                            <span style="font-size:0.75rem; color:#047857;">Reviewed: {{ app.reviewed_at.strftime("%d %b %Y, %I:%M %p") if app.reviewed_at else 'Verified' }}</span>
+                        </div>
+                    {% endif %}
+
+                    <!-- Rejection Banner -->
+                    {% if app.status == 'rejected' %}
+                        <div style="margin-top:1rem; padding:0.75rem 1rem; background:#fef2f2; border:1px solid #fecaca; border-radius:var(--radius-sm); font-size:0.85rem; color:#991b1b;">
+                            <strong>Rejection Reason:</strong> {{ app.admin_notes or 'Credentials could not be verified with regulatory council.' }}
+                        </div>
+                    {% endif %}
+
+                    <!-- Rejection Form Drawer (Hidden by default) -->
+                    <div id="reject-box-{{ app.id }}" style="display:none; margin-top:1rem; padding:1rem; background:#fef2f2; border:1px solid #fca5a5; border-radius:var(--radius-sm);">
+                        <form method="POST" action="{{ url_for('admin_routes.reject_application', app_id=app.id) }}">
+                            <div style="font-weight:700; color:#991b1b; margin-bottom:0.5rem; font-size:0.875rem;">Provide reason for rejection:</div>
+                            <input type="text" name="reason" class="form-control" placeholder="e.g. Medical Council registration number could not be validated on MMC registry." style="margin-bottom:0.75rem;" required>
+                            <div style="display:flex; gap:0.5rem;">
+                                <button type="submit" class="btn btn-primary btn-sm" style="background:#dc2626; border-color:#dc2626;">Confirm Rejection</button>
+                                <button type="button" class="btn btn-outline btn-sm" onclick="document.getElementById('reject-box-{{ app.id }}').style.display = 'none';">Cancel</button>
+                            </div>
+                        </form>
+                    </div>
+
+                </div>
+            {% endfor %}
+        </div>
+    {% else %}
+        <div style="background:white; border:1px solid var(--border-color); border-radius:var(--radius-md); padding:3rem; text-align:center;">
+            <div style="font-size:2.5rem; margin-bottom:0.5rem;">📭</div>
+            <h3 style="font-size:1.15rem; font-weight:700; color:#0f172a; margin-bottom:0.25rem;">No Applications Found</h3>
+            <p style="color:var(--text-muted); font-size:0.9rem;">
+                There are currently no applications matching the selected status or role filters.
+            </p>
+        </div>
+    {% endif %}
+
+</div>
+{% endblock %}

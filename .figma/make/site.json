@@ -1,0 +1,11 @@
+{
+  "title": "Swasthya Setu — Pune Municipal Healthcare Platform",
+  "description": "Pune's sovereign digital healthcare platform with DPDP 2023 compliance, QR health cards, and real-time municipal outbreak surveillance.",
+  "robots": {
+    "index": false
+  },
+  "accessibility": {
+    "addBypassLinks": false,
+    "ignoreReducedMotion": false
+  }
+}

@@ -1,0 +1,26 @@
+# ── Core web framework ─────────────────────────────────────────────────────────
+Flask==3.0.3
+Flask-Login==0.6.3
+Flask-SQLAlchemy==3.1.1
+Flask-WTF==1.2.1
+
+# ── Database ───────────────────────────────────────────────────────────────────
+SQLAlchemy==2.0.50
+psycopg2-binary==2.9.13       # Postgres driver (Supabase / Railway)
+
+# ── Security & encryption ──────────────────────────────────────────────────────
+cryptography==47.0.0
+
+# ── AI / NLP utilities ─────────────────────────────────────────────────────────
+RapidFuzz==3.14.6
+requests==2.32.3
+
+# ── QR code generation ─────────────────────────────────────────────────────────
+qrcode==8.2
+pillow==12.2.0
+
+# ── Configuration ──────────────────────────────────────────────────────────────
+python-dotenv==1.0.1
+
+# ── Production WSGI server ─────────────────────────────────────────────────────
+gunicorn==23.0.0

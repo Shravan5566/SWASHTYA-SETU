@@ -1,0 +1,10 @@
+{
+  "description": "This digital health platform streamlines Pune's healthcare services, offering citizens a unified health identity, real-time outbreak detection, and secure access to medical resources.",
+  "robots": {
+    "index": false
+  },
+  "accessibility": {
+    "addBypassLinks": false,
+    "ignoreReducedMotion": false
+  }
+}

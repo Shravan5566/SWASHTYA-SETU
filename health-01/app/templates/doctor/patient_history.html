@@ -1,0 +1,114 @@
+{% extends "base.html" %}
+{% block title %}Patient History — {{ patient_name }}{% endblock %}
+
+{% block content %}
+<div class="dashboard-container">
+
+    <!-- Header row -->
+    <div style="display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:1rem; margin-bottom:1.75rem;">
+        <div>
+            <h1 class="dashboard-title" style="margin-bottom:0.2rem;">Patient History</h1>
+            <p style="color:var(--text-muted); font-size:0.9rem;">Card: <code>{{ card_id }}</code></p>
+        </div>
+        <a href="{{ url_for('doctor_routes.add_checkup', patient_id=patient_id) }}" class="btn btn-primary">
+            ＋ Add Checkup
+        </a>
+    </div>
+
+    <!-- AI Summary card -->
+    {% if ai_summary %}
+    <div style="background:var(--primary-light); border:1px solid #bae6fd; border-radius:var(--radius-md);
+                padding:1.1rem 1.25rem; margin-bottom:1.75rem; display:flex; align-items:flex-start; gap:0.75rem;">
+        <span style="font-size:1.4rem; flex-shrink:0;">🤖</span>
+        <div style="flex:1;">
+            <p style="font-size:0.82rem; font-weight:600; color:var(--primary); margin-bottom:0.35rem;">AI Clinical Summary</p>
+            <p id="ai-summary-text" style="font-size:0.92rem; color:#0369a1; line-height:1.55;">{{ ai_summary }}</p>
+        </div>
+        <button id="tts-read-btn"
+                onclick="readSummary(document.getElementById('ai-summary-text').textContent)"
+                class="btn btn-outline btn-sm"
+                style="flex-shrink:0; white-space:nowrap;">
+            🔊 Read Summary
+        </button>
+    </div>
+    {% endif %}
+
+    <!-- Visit history -->
+    {% if visits %}
+        {% for visit in visits %}
+        <div style="border:1px solid var(--border-color); border-radius:var(--radius-md);
+                    padding:1.25rem; margin-bottom:1rem; background:white; position:relative;">
+
+            <!-- Meta row -->
+            <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:0.75rem; flex-wrap:wrap; gap:0.5rem;">
+                <div style="display:flex; gap:0.5rem; align-items:center; flex-wrap:wrap;">
+                    <span class="badge" style="background:#f0fdf4; color:#047857; border:1px solid #a7f3d0;">
+                        {{ visit.area }}
+                    </span>
+                    <span class="badge" style="background:#eff6ff; color:#1d4ed8; border:1px solid #bfdbfe;">
+                        {{ visit.condition }}
+                    </span>
+                    {% if visit.refill_restricted %}
+                    <span class="badge" style="background:#fff7ed; color:#c2410c; border:1px solid #fed7aa;">
+                        ⛔ Refill Restricted
+                    </span>
+                    {% endif %}
+                </div>
+                <span style="font-size:0.8rem; color:var(--text-muted);">
+                    {{ visit.created_at.strftime('%d %b %Y, %H:%M') }}
+                </span>
+            </div>
+
+            <!-- Visit fields -->
+            <div style="display:grid; grid-template-columns:1fr 1fr; gap:0.6rem 1.5rem; font-size:0.9rem;">
+                <div>
+                    <span style="color:var(--text-muted); font-size:0.78rem; display:block;">Medicine</span>
+                    <strong>{{ visit.medicine }}</strong>
+                </div>
+                <div>
+                    <span style="color:var(--text-muted); font-size:0.78rem; display:block;">Dosage</span>
+                    <strong>{{ visit.dosage }}</strong>
+                </div>
+                {% if visit.diagnosis_notes %}
+                <div style="grid-column:1/-1;">
+                    <span style="color:var(--text-muted); font-size:0.78rem; display:block;">Diagnosis Notes</span>
+                    <span>{{ visit.diagnosis_notes }}</span>
+                </div>
+                {% endif %}
+            </div>
+
+            <!-- Delete button (only within edit window & by the same doctor) -->
+            {% if can_delete_visit_ids and visit.id in can_delete_visit_ids %}
+            <form method="POST"
+                  action="{{ url_for('doctor_routes.delete_visit', visit_id=visit.id) }}"
+                  style="position:absolute; top:1rem; right:1rem;"
+                  onsubmit="return confirm('Delete this visit record? This cannot be undone.');">
+                <button type="submit" class="btn btn-sm"
+                        style="background:var(--danger-light); color:var(--danger); border:1px solid #fecaca;">
+                    🗑 Delete
+                </button>
+            </form>
+            {% endif %}
+        </div>
+        {% endfor %}
+    {% else %}
+        <div style="text-align:center; padding:3rem 1rem; color:var(--text-muted);">
+            <div style="font-size:3rem; margin-bottom:1rem;">📋</div>
+            <p style="font-size:1rem;">No visit records found for this patient.</p>
+            <a href="{{ url_for('doctor_routes.add_checkup', patient_id=patient_id) }}"
+               class="btn btn-primary" style="margin-top:1rem;">Add First Checkup</a>
+        </div>
+    {% endif %}
+
+    <!-- Footer nav -->
+    <div style="margin-top:1.5rem; padding-top:1.25rem; border-top:1px solid var(--border-color);">
+        <a href="{{ url_for('doctor_routes.scan_qr') }}" style="color:var(--primary); text-decoration:none; font-size:0.875rem;">
+            ← Scan Another Patient
+        </a>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/tts.js') }}"></script>
+{% endblock %}

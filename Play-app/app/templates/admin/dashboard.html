@@ -1,0 +1,173 @@
+{% extends "base.html" %}
+{% block title %}System Administration Dashboard{% endblock %}
+
+{% block content %}
+<div class="dashboard-container" style="max-width:1100px; margin:0 auto; padding-bottom:3rem;">
+
+    <!-- Header -->
+    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1.75rem; flex-wrap:wrap; gap:1rem;">
+        <div>
+            <h1 class="dashboard-title" style="margin-bottom:0.25rem;">⚙️ System Administration</h1>
+            <p style="color:var(--text-muted); font-size:0.95rem;">Identity management, QR card issuance & security audit governance.</p>
+        </div>
+        <div style="display:flex; gap:0.75rem; flex-wrap:wrap;">
+            <a href="{{ url_for('admin_routes.applications') }}" class="btn btn-outline" style="{% if pending_applications > 0 %}border-color:#f59e0b; color:#b45309; font-weight:700; background:#fffbeb;{% endif %}">
+                📋 Applications ({{ pending_applications }} Pending)
+            </a>
+            <a href="{{ url_for('admin_routes.register_patient') }}" class="btn btn-primary" style="display:inline-flex; align-items:center; gap:0.4rem;">
+                ➕ Issue Patient Card
+            </a>
+            <a href="{{ url_for('admin_routes.manage_users') }}" class="btn btn-outline">
+                👥 Manage Staff
+            </a>
+        </div>
+    </div>
+
+    <!-- Metric Cards -->
+    <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(200px, 1fr)); gap:1.25rem; margin-bottom:2rem;">
+        <div style="background:white; border:1px solid var(--border-color); border-radius:var(--radius-md); padding:1.25rem; box-shadow:0 1px 3px rgba(0,0,0,0.04);">
+            <div style="font-size:0.8rem; color:var(--text-muted); font-weight:600; text-transform:uppercase;">Staff Accounts</div>
+            <div style="font-size:1.85rem; font-weight:800; color:#0f172a; margin-top:0.35rem;">{{ total_users }}</div>
+            <div style="font-size:0.8rem; color:#16a34a; margin-top:0.2rem;">{{ active_users }} active</div>
+        </div>
+
+        <div style="background:white; border:1px solid var(--border-color); border-radius:var(--radius-md); padding:1.25rem; box-shadow:0 1px 3px rgba(0,0,0,0.04);">
+            <div style="font-size:0.8rem; color:var(--text-muted); font-weight:600; text-transform:uppercase;">Registered Patients</div>
+            <div style="font-size:1.85rem; font-weight:800; color:var(--primary); margin-top:0.35rem;">{{ total_patients }}</div>
+            <div style="font-size:0.8rem; color:#64748b; margin-top:0.2rem;">QR cards issued</div>
+        </div>
+
+        <div style="background:white; border:1px solid var(--border-color); border-radius:var(--radius-md); padding:1.25rem; box-shadow:0 1px 3px rgba(0,0,0,0.04);">
+            <div style="font-size:0.8rem; color:var(--text-muted); font-weight:600; text-transform:uppercase;">Audit Trail Records</div>
+            <div style="font-size:1.85rem; font-weight:800; color:#0f172a; margin-top:0.35rem;">{{ total_logs }}</div>
+            <div style="font-size:0.8rem; color:#64748b; margin-top:0.2rem;">Logged events</div>
+        </div>
+
+        <div style="background:white; border:1px solid {% if denied_logs > 0 %}#fecaca{% else %}var(--border-color){% endif %}; border-radius:var(--radius-md); padding:1.25rem; background:{% if denied_logs > 0 %}#fef2f2{% else %}white{% endif %}; box-shadow:0 1px 3px rgba(0,0,0,0.04);">
+            <div style="font-size:0.8rem; color:{% if denied_logs > 0 %}#b91c1c{% else %}var(--text-muted){% endif %}; font-weight:600; text-transform:uppercase;">Security Denials (403)</div>
+            <div style="font-size:1.85rem; font-weight:800; color:{% if denied_logs > 0 %}#dc2626{% else %}#16a34a{% endif %}; margin-top:0.35rem;">{{ denied_logs }}</div>
+            <div style="font-size:0.8rem; color:{% if denied_logs > 0 %}#991b1b{% else %}#16a34a{% endif %}; margin-top:0.2rem;">RBAC blocked attempts</div>
+        </div>
+
+        <div style="background:{% if pending_applications > 0 %}#fffbeb{% else %}white{% endif %}; border:1px solid {% if pending_applications > 0 %}#fcd34d{% else %}var(--border-color){% endif %}; border-radius:var(--radius-md); padding:1.25rem; box-shadow:0 1px 3px rgba(0,0,0,0.04);">
+            <div style="font-size:0.8rem; color:{% if pending_applications > 0 %}#b45309{% else %}var(--text-muted){% endif %}; font-weight:600; text-transform:uppercase;">Applications</div>
+            <div style="font-size:1.85rem; font-weight:800; color:{% if pending_applications > 0 %}#d97706{% else %}#0f172a{% endif %}; margin-top:0.35rem;">{{ pending_applications }}</div>
+            <div style="font-size:0.8rem; color:{% if pending_applications > 0 %}#b45309{% else %}#64748b{% endif %}; margin-top:0.2rem;">Pending review ({{ total_applications }} total)</div>
+        </div>
+    </div>
+
+    <!-- Quick Navigation Hub -->
+    <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(300px, 1fr)); gap:1.5rem; margin-bottom:2rem;">
+        
+        <div style="background:white; border:1px solid var(--border-color); border-radius:var(--radius-md); padding:1.5rem; display:flex; flex-direction:column; justify-content:space-between;">
+            <div>
+                <div style="display:flex; align-items:center; gap:0.6rem; margin-bottom:0.75rem;">
+                    <span style="font-size:1.4rem;">📋</span>
+                    <h2 style="font-size:1.15rem; font-weight:700; margin:0;">Applications Screening</h2>
+                    {% if pending_applications > 0 %}
+                    <span class="badge" style="background:#fef3c7; color:#b45309;">{{ pending_applications }} NEW</span>
+                    {% endif %}
+                </div>
+                <p style="font-size:0.875rem; color:var(--text-muted); line-height:1.5;">
+                    Screen public applications for Doctor &amp; Pharmacist accounts, and verify citizen requests for Digital Health Cards.
+                </p>
+            </div>
+            <div style="margin-top:1.25rem;">
+                <a href="{{ url_for('admin_routes.applications') }}" class="btn btn-primary" style="width:100%; text-align:center;">
+                    Review Applications ({{ pending_applications }} Pending) →
+                </a>
+            </div>
+        </div>
+        
+        <div style="background:white; border:1px solid var(--border-color); border-radius:var(--radius-md); padding:1.5rem; display:flex; flex-direction:column; justify-content:space-between;">
+            <div>
+                <div style="display:flex; align-items:center; gap:0.6rem; margin-bottom:0.75rem;">
+                    <span style="font-size:1.4rem;">👥</span>
+                    <h2 style="font-size:1.15rem; font-weight:700; margin:0;">Staff Accounts & RBAC</h2>
+                </div>
+                <p style="font-size:0.875rem; color:var(--text-muted); line-height:1.5;">
+                    Provision doctors, pharmacists, and public health administrators. Assign roles, reset credentials, or deactivate accounts.
+                </p>
+            </div>
+            <div style="margin-top:1.25rem;">
+                <a href="{{ url_for('admin_routes.manage_users') }}" class="btn btn-outline" style="width:100%; text-align:center;">
+                    Manage Staff Accounts →
+                </a>
+            </div>
+        </div>
+
+        <div style="background:white; border:1px solid var(--border-color); border-radius:var(--radius-md); padding:1.5rem; display:flex; flex-direction:column; justify-content:space-between;">
+            <div>
+                <div style="display:flex; align-items:center; gap:0.6rem; margin-bottom:0.75rem;">
+                    <span style="font-size:1.4rem;">🪪</span>
+                    <h2 style="font-size:1.15rem; font-weight:700; margin:0;">Patient QR Card Issuance</h2>
+                </div>
+                <p style="font-size:0.875rem; color:var(--text-muted); line-height:1.5;">
+                    Register new patients with client-side encrypted PII and print instant high-density QR cards. Zero clinical data access.
+                </p>
+            </div>
+            <div style="margin-top:1.25rem;">
+                <a href="{{ url_for('admin_routes.register_patient') }}" class="btn btn-outline" style="width:100%; text-align:center;">
+                    Issue QR Cards →
+                </a>
+            </div>
+        </div>
+
+        <div style="background:white; border:1px solid var(--border-color); border-radius:var(--radius-md); padding:1.5rem; display:flex; flex-direction:column; justify-content:space-between;">
+            <div>
+                <div style="display:flex; align-items:center; gap:0.6rem; margin-bottom:0.75rem;">
+                    <span style="font-size:1.4rem;">📋</span>
+                    <h2 style="font-size:1.15rem; font-weight:700; margin:0;">Immutable Audit Trail</h2>
+                </div>
+                <p style="font-size:0.875rem; color:var(--text-muted); line-height:1.5;">
+                    Inspect the security audit log recording every HTTP request, user session, role verification, and access grant or denial.
+                </p>
+            </div>
+            <div style="margin-top:1.25rem;">
+                <a href="{{ url_for('admin_routes.audit_log') }}" class="btn btn-outline" style="width:100%; text-align:center;">
+                    Inspect Audit Log →
+                </a>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- Recent Denials Widget -->
+    {% if recent_denials %}
+    <div style="background:white; border:1px solid #fecaca; border-radius:var(--radius-md); padding:1.25rem 1.5rem;">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1rem;">
+            <div style="display:flex; align-items:center; gap:0.5rem;">
+                <span style="font-size:1.1rem;">⚠️</span>
+                <h3 style="font-size:1rem; font-weight:700; color:#b91c1c; margin:0;">Recent Security Denial Events (403)</h3>
+            </div>
+            <a href="{{ url_for('admin_routes.audit_log', result='denied') }}" style="font-size:0.82rem; color:#b91c1c; text-decoration:none; font-weight:600;">View All Denials →</a>
+        </div>
+        <div style="overflow-x:auto;">
+            <table style="width:100%; border-collapse:collapse; font-size:0.85rem;">
+                <thead>
+                    <tr style="color:#64748b; border-bottom:1px solid #fee2e2; text-align:left;">
+                        <th style="padding:0.5rem 0.75rem;">Timestamp</th>
+                        <th style="padding:0.5rem 0.75rem;">User ID / Role</th>
+                        <th style="padding:0.5rem 0.75rem;">Endpoint</th>
+                        <th style="padding:0.5rem 0.75rem; text-align:right;">Result</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for d in recent_denials %}
+                    <tr style="border-bottom:1px solid #fff1f2;">
+                        <td style="padding:0.5rem 0.75rem; color:#64748b; font-family:monospace;">{{ d.timestamp.strftime('%Y-%m-%d %H:%M:%S') }}</td>
+                        <td style="padding:0.5rem 0.75rem;">{{ d.user_id or "Unauthenticated" }} ({{ d.role_at_time or "none" }})</td>
+                        <td style="padding:0.5rem 0.75rem; font-family:monospace; color:#0f172a;">{{ d.endpoint }}</td>
+                        <td style="padding:0.5rem 0.75rem; text-align:right;">
+                            <span class="badge" style="background:#fee2e2; color:#b91c1c; border:1px solid #fca5a5;">DENIED</span>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+    {% endif %}
+
+</div>
+{% endblock %}
