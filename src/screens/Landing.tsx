@@ -39,7 +39,7 @@ const pillars = [
 ]
 
 export default function Landing() {
-  const { t } = useLang()
+  const { lang, t } = useLang()
 
   return (
     <>
@@ -51,10 +51,12 @@ export default function Landing() {
             <img src="/sslogo-symbol.png" alt="Swasthya Setu" className="w-5 h-5 object-contain" />
             <span className="font-bold text-ink">Swasthya Setu</span>
             <span className="text-slate-300">•</span>
-            <span className="text-slate-600 font-medium">Pune Health Infrastructure</span>
+            <span className="text-slate-600 font-medium">{t('pmc.tag', 'Pune Health Infrastructure')}</span>
           </div>
 
           <TextBlockAnimation
+            key={lang}
+            restartKey={lang}
             useTricolor={true}
             showLogo={true}
             logoSrc="/sslogo-symbol.png"
@@ -64,10 +66,22 @@ export default function Landing() {
             stagger={0.14}
             className="mb-1"
           >
-            <h1 className="text-[38px] sm:text-5xl lg:text-[56px] leading-[1.1] font-extrabold tracking-[-0.035em] text-ink">
+            <h1
+              className={`text-[36px] sm:text-5xl lg:text-[54px] font-extrabold text-ink ${
+                lang === 'mr'
+                  ? 'leading-[1.32] tracking-normal font-["Baloo_2","Mukta",sans-serif]'
+                  : 'leading-[1.1] tracking-[-0.035em]'
+              }`}
+            >
               {t('hero.h1a', 'Digital Health Identification')}
               <br />
-              <span className="text-black font-['Outfit',sans-serif] font-extrabold tracking-[-0.03em]">
+              <span
+                className={`text-black font-extrabold ${
+                  lang === 'mr'
+                    ? 'font-["Baloo_2","Mukta",sans-serif] tracking-normal'
+                    : 'font-["Outfit",sans-serif] tracking-[-0.03em]'
+                }`}
+              >
                 {t('hero.h1b', '& Civic Care Network.')}
               </span>
             </h1>
@@ -94,23 +108,23 @@ export default function Landing() {
             <div>
               <div className="text-xs font-bold text-ink flex items-center gap-1.5">
                 <span className="w-2 h-2 rounded-full bg-emerald-500" />
-                15 Wards
+                {t('stat.wards', '15 Wards')}
               </div>
-              <div className="text-[11px] text-slate-500 mt-0.5">Surveillance Grid</div>
+              <div className="text-[11px] text-slate-500 mt-0.5">{t('stat.wards.sub', 'Surveillance Grid')}</div>
             </div>
             <div>
               <div className="text-xs font-bold text-ink flex items-center gap-1.5">
                 <span className="w-2 h-2 rounded-full bg-orange-500" />
-                Consent OTP
+                {t('stat.otp', 'Consent OTP')}
               </div>
-              <div className="text-[11px] text-slate-500 mt-0.5">Patient Governed</div>
+              <div className="text-[11px] text-slate-500 mt-0.5">{t('stat.otp.sub', 'Patient Governed')}</div>
             </div>
             <div>
               <div className="text-xs font-bold text-ink flex items-center gap-1.5">
                 <span className="w-2 h-2 rounded-full bg-blue-500" />
-                QR ID
+                {t('stat.qr', 'QR ID')}
               </div>
-              <div className="text-[11px] text-slate-500 mt-0.5">Instant Check-in</div>
+              <div className="text-[11px] text-slate-500 mt-0.5">{t('stat.qr.sub', 'Instant Check-in')}</div>
             </div>
           </div>
         </div>
@@ -132,7 +146,7 @@ export default function Landing() {
           <div>
             <div className="eyebrow mb-1">{t('pillars', 'Core Platform Architecture')}</div>
             <h2 className="text-2xl md:text-3xl font-extrabold tracking-tight text-ink">
-              Built for Medical Privacy & Fast Consultations
+              {t('pillars.h2', 'Built for Medical Privacy & Fast Consultations')}
             </h2>
           </div>
         </div>
@@ -157,7 +171,7 @@ export default function Landing() {
               </h3>
               <p className="text-slate-600 text-sm leading-relaxed">{t(p.k + '.d', p.d)}</p>
               <div className="mt-6 flex items-center text-xs font-semibold text-saffron gap-1 group-hover:gap-2 transition-all">
-                <span>Enter Terminal</span>
+                <span>{t('enter.terminal', 'Enter Terminal')}</span>
                 <span>→</span>
               </div>
             </a>

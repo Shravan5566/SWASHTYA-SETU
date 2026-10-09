@@ -1,6 +1,7 @@
 "use client"
 
 import React, { useRef, useState, useEffect, useCallback } from "react"
+import { useLang } from "@/i18n"
 
 interface Royal3DCardProps {
   imageSrc?: string
@@ -13,6 +14,7 @@ export default function Royal3DCard({
   onClick,
   className = "",
 }: Royal3DCardProps) {
+  const { t } = useLang()
   const containerRef = useRef<HTMLDivElement>(null)
   const cardRef = useRef<HTMLDivElement>(null)
   const animFrameRef = useRef<number | null>(null)
@@ -147,12 +149,12 @@ export default function Royal3DCard({
         <div className="flex items-center gap-2">
           <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
           <span className="text-[11px] font-bold tracking-tight text-slate-800 uppercase font-mono">
-            Digital Health ID
+            {t('card.title', 'Digital Health ID')}
           </span>
         </div>
         <div className="flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-white/90 border border-slate-200/80 shadow-2xs">
           <span className="text-[10px] font-semibold text-slate-600 font-mono">
-            SECURE QR ID
+            {t('card.badge', 'SECURE QR ID')}
           </span>
         </div>
       </div>
@@ -200,10 +202,10 @@ export default function Royal3DCard({
       {/* Bottom Bento Status & Action Bar */}
       <div className="mt-3.5 pt-3 border-t border-slate-200/70 flex items-center justify-between text-xs text-slate-500 relative z-10">
         <span className="text-[11px] font-medium text-slate-600">
-          Citizen QR Card
+          {t('card.citizen', 'Citizen QR Card')}
         </span>
         <span className="inline-flex items-center gap-1 text-[11px] font-bold text-orange-600 group-hover:text-orange-700 transition-colors">
-          Issue Card <span className="transition-transform group-hover:translate-x-0.5">→</span>
+          {t('card.issue', 'Issue Card')} <span className="transition-transform group-hover:translate-x-0.5">→</span>
         </span>
       </div>
     </div>
