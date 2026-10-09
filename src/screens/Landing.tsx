@@ -1,6 +1,6 @@
 import { useLang } from '../i18n'
 import { FullLogo } from '../ui'
-import { AuroraCreditCardBento } from '@/components/ui/aurora-credit-card-bento'
+import Royal3DCard from '@/components/ui/royal-3d-card'
 import TextBlockAnimation from '@/components/ui/text-block-animation'
 
 const pillars = [
@@ -115,51 +115,13 @@ export default function Landing() {
           </div>
         </div>
 
-        {/* Sovereign Smart Card Bento Experience */}
-        <div className="flex flex-col items-center lg:items-end w-full max-w-[430px] mx-auto lg:ml-auto">
-          <AuroraCreditCardBento
-            title={
-              <div className="space-y-1">
-                <span className="text-[1.35rem] font-extrabold tracking-tight text-white block">
-                  Digital Health Card
-                </span>
-                <span className="text-xs font-mono tracking-wider text-orange-400 font-semibold block uppercase">
-                  Swasthya Setu Platform
-                </span>
-              </div>
-            }
-            brand="none"
-            brandMark={
-              <div className="flex items-center gap-2 bg-slate-950/80 backdrop-blur-md px-2.5 py-1.5 rounded-xl border border-white/15 shadow-sm">
-                <img
-                  src="/sslogo-symbol.png"
-                  alt="Swasthya Setu Emblem"
-                  className="w-5 h-5 object-contain"
-                />
-                <div className="leading-none text-left">
-                  <div className="text-[10px] font-extrabold tracking-tight text-white uppercase font-sans">
-                    Swasthya Setu
-                  </div>
-                  <div className="text-[7.5px] font-mono tracking-widest text-slate-400 uppercase font-semibold">
-                    SECURE QR ID
-                  </div>
-                </div>
-              </div>
-            }
-            color1="#ea580c"
-            color2="#f97316"
-            color3="#10b981"
-            color4="#047857"
-            color5="#0b192c"
-            color6="#f59e0b"
-            glow="#ea580c"
-            highlight="rgba(255, 255, 255, 0.95)"
-            tilt={18}
-            float={true}
+        {/* Royal 3D Health Card Experience */}
+        <div className="flex flex-col items-center lg:items-end w-full max-w-[420px] mx-auto lg:ml-auto">
+          <Royal3DCard
+            imageSrc="/royal-health-card.png"
             onClick={() => {
               window.location.hash = '#/apply'
             }}
-            className="border border-slate-800/90 shadow-2xl bg-gradient-to-b from-[#0e1726] to-[#070b12]"
           />
         </div>
       </section>
