@@ -52,3 +52,11 @@ Thumbs.db
 # Logs
 logs/
 *.log
+
+# Internal Presentation / Hackathon Docs
+HACKATHON_*.md
+PRESENTATION_*.md
+PROJECT DETAILS & PROGRESS.md
+SETUP_AND_DEMO_GUIDE.md
+CLAUDE.md
+*HACKMATRIX*
