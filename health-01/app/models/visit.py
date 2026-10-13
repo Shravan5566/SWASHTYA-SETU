@@ -18,6 +18,8 @@ class Visit(db.Model):
     medicine = db.Column(db.String(500), nullable=False)
     dosage = db.Column(db.String(255), nullable=False)
     refill_restricted = db.Column(db.Boolean, default=False, nullable=False)
+    dispensed = db.Column(db.Boolean, default=False, nullable=False)
+    dispensed_at = db.Column(db.DateTime, nullable=True)
     created_at = db.Column(db.DateTime, default=datetime.utcnow, nullable=False, index=True)
 
     # Relationship to doctor (User)

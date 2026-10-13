@@ -1,4 +1,3 @@
-# pyrefly: ignore [missing-import]
 """
 routes/admin_routes.py — System Administration & User Management Panel
 
@@ -13,7 +12,7 @@ Enforces:
 
 import re
 from datetime import datetime
-from flask import Blueprint, render_template, request, redirect, url_for, flash, abort
+from flask import Blueprint, render_template, request, redirect, url_for, flash
 from flask_login import current_user
 from app.extensions import db
 from app.models.user import User
@@ -40,8 +39,8 @@ VALID_ROLES = ["doctor", "pharmacist", "public_health_admin", "sysadmin"]
 
 
 @admin_routes.route("/dashboard", methods=["GET"])
-@role_required("sysadmin")
 def dashboard():
+    return redirect("/#/admin")
     """System Administrator executive overview."""
     total_users = User.query.count()
     active_users = User.query.filter_by(is_active=True).count()
@@ -263,7 +262,7 @@ def audit_log():
 
 
 # ─────────────────────────────────────────────────────────────────────────────
-# Applications Screening & Processing (Step for Staff & Health Cards)
+# Applications Screening & Processing
 # ─────────────────────────────────────────────────────────────────────────────
 
 @admin_routes.route("/applications", methods=["GET"])
@@ -351,7 +350,7 @@ def approve_application(app_id: int):
             )
 
         flash(
-            f"✅ Approved {app_record.full_name}! User account created. "
+            f"Approved {app_record.full_name}! User account created. "
             f"Username: '{final_username}' | Password: '{temp_password}'",
             "success",
         )
@@ -364,12 +363,22 @@ def approve_application(app_id: int):
             app_record.reviewed_at = datetime.utcnow()
             db.session.commit()
 
-            # Send approval email with e-card download & postal dispatch notice
+            # Send approval email with attached health card
             if app_record.email:
-                send_patient_approval_email(app_record.email, app_record.full_name, patient.card_id)
+                calc_age = app_record.dob or "28 Years"
+                send_patient_approval_email(
+                    to_email=app_record.email,
+                    full_name=app_record.full_name,
+                    card_id=patient.card_id,
+                    age=calc_age,
+                    gender=app_record.gender or "—",
+                    blood_group=app_record.blood_group or "O+",
+                    locality=app_record.locality or "Pune",
+                    phone=app_record.phone,
+                )
 
             flash(
-                f"✅ Approved Health Card for {app_record.full_name}! "
+                f"Approved Health Card for {app_record.full_name}! "
                 f"Assigned Card ID: '{patient.card_id}'. QR card is now generated.",
                 "success",
             )

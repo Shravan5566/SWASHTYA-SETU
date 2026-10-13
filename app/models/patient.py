@@ -14,6 +14,11 @@ class Patient(db.Model):
     card_id = db.Column(db.String(100), unique=True, nullable=False, index=True)
     name_encrypted = db.Column(db.Text, nullable=False)
     phone_encrypted = db.Column(db.Text, nullable=False)
+    blood_group = db.Column(db.String(10), nullable=True)
+    locality = db.Column(db.String(100), nullable=True)  # Pune locality
+    allergies = db.Column(db.Text, nullable=True)        # Comma-separated known allergies
+    chronic_conditions = db.Column(db.Text, nullable=True)
+    email = db.Column(db.Text, nullable=True)            # Encrypted patient email (for OTP delivery)
     created_at = db.Column(db.DateTime, default=datetime.utcnow, nullable=False)
 
     # Relationship to visits

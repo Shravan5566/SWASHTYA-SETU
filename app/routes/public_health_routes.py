@@ -1,4 +1,3 @@
-# pyrefly: ignore [missing-import]
 """
 routes/public_health_routes.py — Public Health Surveillance & Aggregates Panel
 
@@ -9,8 +8,7 @@ Enforces:
 - Outbreak trend alerts via services/ai_service.py detect_trends()
 """
 
-from flask import Blueprint, render_template, request, jsonify
-from flask_login import login_required
+from flask import Blueprint, render_template, request, jsonify, redirect
 from app.middleware.role_required import role_required
 from app.services.anonymizer import (
     query_anonymized_stats,
@@ -29,13 +27,8 @@ public_health_routes = Blueprint(
 
 
 @public_health_routes.route("/dashboard", methods=["GET"])
-@role_required("public_health_admin")
 def dashboard():
-    """
-    Main epidemiological surveillance dashboard.
-    Renders aggregate condition counts by area and time bucket.
-    Guaranteed privacy: small cohorts (< MIN_GROUP_SIZE) are masked with "Insufficient Data".
-    """
+    return redirect("/#/surveillance")
     selected_area = request.args.get("area", "").strip() or None
     selected_condition = request.args.get("condition", "").strip() or None
     selected_bucket = request.args.get("time_bucket", "").strip() or None
@@ -110,9 +103,6 @@ def trend_forecast():
     """
     Disease Trend Detector: Shows 3-day and 7-day predictive forecasts for ALL
     monitored (area, condition) pairs — not just those already spiking.
-
-    Allows health officers to spot rising trends (WATCH / ELEVATED) 3-7 days
-    before they breach the outbreak alert threshold.
     """
     trends = predict_all_trends()
 

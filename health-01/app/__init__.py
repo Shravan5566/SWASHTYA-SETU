@@ -19,6 +19,9 @@ from app.routes.application_routes import PUNE_LOCALITIES
 
 def create_app(config_class=Config):
     """Application factory for Swasthya Setu."""
+    # Fail-fast validation of critical secrets
+    config_class.validate_secrets()
+
     app = Flask(__name__)
     app.config.from_object(config_class)
 
@@ -84,11 +87,14 @@ def create_app(config_class=Config):
     def ratelimit_handler(e):
         return render_template("errors/429.html"), 429
 
-    # Locate modern React frontend dist build
+    # Locate modern React frontend dist build (check project root first)
     base_dir = os.path.dirname(os.path.abspath(__file__))
-    dist_folder = os.path.join(base_dir, "dist")
-    if not os.path.exists(dist_folder):
-        dist_folder = os.path.abspath(os.path.join(base_dir, "..", "..", "dist"))
+    candidates = [
+        os.path.abspath(os.path.join(base_dir, "..", "..", "dist")),
+        os.path.abspath(os.path.join(base_dir, "..", "dist")),
+        os.path.join(base_dir, "dist"),
+    ]
+    dist_folder = next((c for c in candidates if os.path.exists(os.path.join(c, "index.html"))), os.path.join(base_dir, "dist"))
 
     # Static asset routes for modern React bundle
     @app.route("/assets/<path:filename>")
@@ -137,13 +143,17 @@ def create_app(config_class=Config):
     def redirect_pharmacist():
         return redirect("/#/pharmacist")
 
-    @app.route("/public-health/dashboard", methods=["GET"])
-    @app.route("/public-health/trend-forecast", methods=["GET"])
-    def redirect_public_health():
+    @app.route("/public-health", methods=["GET"])
+    @app.route("/public-health/<path:subpath>", methods=["GET"])
+    @app.route("/public_health", methods=["GET"])
+    @app.route("/public_health/<path:subpath>", methods=["GET"])
+    def redirect_public_health(subpath=None):
         return redirect("/#/surveillance")
 
     @app.route("/admin/dashboard", methods=["GET"])
-    def redirect_admin():
+    @app.route("/admin/<path:subpath>", methods=["GET"])
+    def redirect_admin(subpath=None):
         return redirect("/#/admin")
+
 
     return app

@@ -14,6 +14,7 @@ class AccessLog(db.Model):
     role_at_time = db.Column(db.String(50), nullable=True)
     endpoint = db.Column(db.String(255), nullable=False)
     result = db.Column(db.String(20), nullable=False)  # 'allowed' or 'denied'
+    ip_address = db.Column(db.String(60), nullable=True)
     timestamp = db.Column(db.DateTime, default=datetime.utcnow, nullable=False, index=True)
 
     # Relationship to User (nullable for unauthenticated attempts)

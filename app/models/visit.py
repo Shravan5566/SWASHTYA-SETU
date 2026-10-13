@@ -14,10 +14,12 @@ class Visit(db.Model):
     created_by = db.Column(db.Integer, db.ForeignKey("users.id"), nullable=False, index=True)
     area = db.Column(db.String(120), nullable=False, index=True)
     condition = db.Column(db.String(255), nullable=False, index=True)
-    diagnosis_notes = db.Column(db.Text, nullable=True)
+    diagnosis_notes = db.Column(db.Text, nullable=True)   # NEVER exposed to pharmacist queries
     medicine = db.Column(db.String(500), nullable=False)
     dosage = db.Column(db.String(255), nullable=False)
     refill_restricted = db.Column(db.Boolean, default=False, nullable=False)
+    dispensed = db.Column(db.Boolean, default=False, nullable=False)
+    dispensed_at = db.Column(db.DateTime, nullable=True)
     created_at = db.Column(db.DateTime, default=datetime.utcnow, nullable=False, index=True)
 
     # Relationship to doctor (User)

@@ -1,5 +1,5 @@
 from datetime import datetime, timedelta
-from flask import Blueprint, render_template, request, redirect, url_for, session, abort, flash
+from flask import Blueprint, render_template, request, redirect, url_for, session, abort, flash, current_app
 from flask_login import current_user
 from app.middleware.role_required import role_required
 from app.middleware.rate_limiter import rate_limit
@@ -191,6 +191,31 @@ def add_checkup(patient_id: int):
             invalidate_summary(patient_id)
         except Exception:
             pass
+
+        # ── Real-Time Municipal Surveillance Permitted Aggregation ────────────
+        try:
+            from app.models.stats import Stats
+            from app.services.anomaly_ml_service import get_default_ward_case_count
+            clean_ward = area.split("(")[0].strip()
+            condition_query = condition.replace("_", " ").strip()
+            today_bucket = datetime.utcnow().strftime("%Y-%m-%d")
+
+            stat = Stats.query.filter(
+                db.or_(Stats.area == clean_ward, Stats.area == area, Stats.area.like(f"{clean_ward}%")),
+                db.or_(
+                    Stats.condition.ilike(f"%{condition_query}%"),
+                    Stats.condition.ilike(f"%{condition_query.split()[0]}%")
+                )
+            ).order_by(Stats.id.desc()).first()
+
+            if stat:
+                stat.count += 1
+            else:
+                baseline = get_default_ward_case_count(clean_ward, condition_query) + 1
+                stat = Stats(area=clean_ward, condition=condition.title(), time_bucket=today_bucket, count=baseline)
+                db.session.add(stat)
+        except Exception as e:
+            current_app.logger.warning(f"Failed to update Stats from add_checkup: {e}")
 
         db.session.commit()
         flash("Checkup added successfully.", "success")

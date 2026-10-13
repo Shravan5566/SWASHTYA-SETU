@@ -1,8 +1,6 @@
-# pyrefly: ignore [missing-import]
 """
 services/qr_service.py — Patient QR Card Generator & Card Management
 
-Per Implementation Plan Step 7 & Step 11:
 - lookup_patient_by_card: Scanned card lookup (Doctor & Pharmacist flows).
 - generate_card_id: Cryptographically non-guessable, unique identifier.
 - generate_qr_code: Renders QR image as a base64 data URI for instant rendering & printing.

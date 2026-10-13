@@ -6,6 +6,7 @@ from .admin_routes import admin_routes
 from .ai_routes import ai_routes
 from .ajax_routes import ajax_routes
 from .application_routes import application_routes
+from .api_routes import api_routes
 
 __all__ = [
     "auth_routes",
@@ -16,4 +17,5 @@ __all__ = [
     "ai_routes",
     "ajax_routes",
     "application_routes",
+    "api_routes",
 ]

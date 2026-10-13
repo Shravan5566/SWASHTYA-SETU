@@ -1,34 +1,84 @@
-# pyrefly: ignore [missing-import]
 from app.extensions import db
 from app.models.user import User
 from app.models.patient import Patient
 from app.models.visit import Visit
-from app.utils.crypto import encrypt
+from app.utils.crypto import encrypt, decrypt
 
 DEFAULT_USERS = [
+    # Official Medical Practitioner Accounts
+    {
+        "username": "dr.rajesh.kulkarni",
+        "password": "password123",
+        "role": "doctor",
+        "full_name": "Dr. Rajesh Kulkarni, MD (Senior Medical Officer)",
+    },
+    {
+        "username": "ramesh.kadam",
+        "password": "password123",
+        "role": "pharmacist",
+        "full_name": "Ramesh Kadam, R.Ph (Lead Clinical Pharmacist)",
+    },
+    {
+        "username": "dr.meenakshi.sundaram",
+        "password": "password123",
+        "role": "public_health_admin",
+        "full_name": "Dr. Meenakshi Sundaram, MD, MPH (Chief Epidemiologist)",
+    },
+    {
+        "username": "director.raman",
+        "password": "password123",
+        "role": "sysadmin",
+        "full_name": "Director V. K. Raman (Lead Healthcare Systems Security Officer)",
+    },
+    # Fast-Login Aliases
     {
         "username": "doctor_demo",
         "password": "password123",
         "role": "doctor",
-        "full_name": "Dr. Aisha Verma",
+        "full_name": "Dr. Rajesh Kulkarni, MD",
     },
     {
         "username": "pharma_demo",
         "password": "password123",
         "role": "pharmacist",
-        "full_name": "Rahul Patel",
+        "full_name": "Ramesh Kadam, R.Ph",
     },
     {
         "username": "public_demo",
         "password": "password123",
         "role": "public_health_admin",
-        "full_name": "Priya Nair",
+        "full_name": "Dr. Meenakshi Sundaram, MD, MPH",
     },
     {
         "username": "admin_demo",
         "password": "password123",
         "role": "sysadmin",
-        "full_name": "Admin Vikram Rao",
+        "full_name": "Director V. K. Raman",
+    },
+    # Backward compatibility aliases
+    {
+        "username": "dr.aisha.verma",
+        "password": "password123",
+        "role": "doctor",
+        "full_name": "Dr. Rajesh Kulkarni, MD",
+    },
+    {
+        "username": "priya.nair",
+        "password": "password123",
+        "role": "public_health_admin",
+        "full_name": "Dr. Meenakshi Sundaram, MD, MPH",
+    },
+    {
+        "username": "rahul.patel",
+        "password": "password123",
+        "role": "pharmacist",
+        "full_name": "Ramesh Kadam, R.Ph",
+    },
+    {
+        "username": "vikram.rao",
+        "password": "password123",
+        "role": "sysadmin",
+        "full_name": "Director V. K. Raman",
     },
 ]
 
@@ -49,7 +99,6 @@ def seed_staff_accounts():
             db.session.add(user)
             created.append(udata["username"])
         else:
-            # Ensure password and role are active
             existing.role = udata["role"]
             existing.full_name = udata["full_name"]
             existing.is_active = True
@@ -60,9 +109,9 @@ def seed_staff_accounts():
 
 
 DEFAULT_PATIENTS = [
-    {"card_id": "SS-TEST-001", "name": "Meera Joshi",   "phone": "+919876543210"},
-    {"card_id": "SS-TEST-002", "name": "Arjun Sharma",  "phone": "+919876543211"},
-    {"card_id": "SS-TEST-003", "name": "Priya Sen",     "phone": "+919876543212"},
+    {"card_id": "SS-TEST-001", "name": "Meera Joshi",   "phone": "+919876543210", "email": "shravanwadnerkar41206@gmail.com"},
+    {"card_id": "SS-TEST-002", "name": "Arjun Sharma",  "phone": "+919876543211", "email": "shravanwadnerkar41206@gmail.com"},
+    {"card_id": "SS-TEST-003", "name": "Kavita Patil",   "phone": "+919876543212", "email": "shravanwadnerkar41206@gmail.com"},
 ]
 
 
@@ -79,22 +128,22 @@ def seed_patients() -> list:
                 card_id=pd["card_id"],
                 name_encrypted=encrypt(pd["name"]),
                 phone_encrypted=encrypt(pd["phone"]),
+                email=encrypt(pd["email"]) if pd.get("email") else None,
             )
             db.session.add(patient)
-            db.session.flush()  # get patient.id before commit
+            db.session.flush()
             is_new = True
             created.append(pd["card_id"])
         else:
             patient = existing
-            try:
-                decrypt(patient.phone_encrypted)
-            except Exception:
+            if pd.get("email") and not patient.email:
+                patient.email = encrypt(pd["email"])
+            if decrypt(patient.phone_encrypted) == "[Decryption Error]" or decrypt(patient.name_encrypted) == "[Decryption Error]" or not patient.phone_encrypted:
                 patient.name_encrypted = encrypt(pd["name"])
                 patient.phone_encrypted = encrypt(pd["phone"])
 
         if doctor and is_new:
             if pd["card_id"] == "SS-TEST-001":
-                # Older visit (> 24 hours ago, immutable) - Pune Shivajinagar
                 db.session.add(Visit(
                     patient_id=patient.id, created_by=doctor.id,
                     area="Shivajinagar (Ward A)", condition="Flu, Cold & Cough",
@@ -103,7 +152,6 @@ def seed_patients() -> list:
                     refill_restricted=False,
                     created_at=datetime.utcnow() - timedelta(days=10),
                 ))
-                # More recent visit
                 db.session.add(Visit(
                     patient_id=patient.id, created_by=doctor.id,
                     area="Shivajinagar (Ward A)", condition="Hypertension & Chronic Headache",
@@ -130,7 +178,6 @@ def seed_patients() -> list:
                     created_at=datetime.utcnow() - timedelta(days=2),
                 ))
             elif pd["card_id"] == "SS-TEST-003":
-                # Area Katraj Ward C (kept small under MIN_GROUP_SIZE)
                 db.session.add(Visit(
                     patient_id=patient.id, created_by=doctor.id,
                     area="Katraj (Ward C)", condition="Dengue & Dehydration",
@@ -146,10 +193,6 @@ def seed_patients() -> list:
 def seed_stats() -> int:
     """
     Seeds aggregate epidemiological records into the stats table for Main Pune regions.
-    Includes:
-    - Normal cohorts (count >= MIN_GROUP_SIZE) across Pune
-    - Deliberately suppressed small cohorts (count < MIN_GROUP_SIZE) for privacy demo
-    - Historical time series with an outbreak spike for trend detector validation
     """
     from app.models.stats import Stats
 
@@ -168,26 +211,26 @@ def seed_stats() -> int:
         {"area": "Camp", "condition": "Flu", "time_bucket": "2026-W38", "count": 18},
         {"area": "Deccan Gymkhana", "condition": "Hypertension", "time_bucket": "2026-W38", "count": 11},
 
-        # Deliberately small cohorts (< 5) — must show "Insufficient Data" sentinel
+        # Deliberately small cohorts (< 5)
         {"area": "Katraj (Ward C)", "condition": "Dengue", "time_bucket": "2026-W38", "count": 3},
         {"area": "Katraj (Ward C)", "condition": "Malaria", "time_bucket": "2026-W38", "count": 1},
         {"area": "Viman Nagar", "condition": "Typhoid", "time_bucket": "2026-W38", "count": 2},
         {"area": "Baner", "condition": "Chikungunya", "time_bucket": "2026-W38", "count": 2},
         {"area": "Deccan Gymkhana", "condition": "Malaria", "time_bucket": "2026-W38", "count": 1},
 
-        # Outbreak spike time-series 1: Dengue in Kothrud (Ward B) (4, 5, 6, 38)
+        # Outbreak spike time-series 1: Dengue in Kothrud (Ward B)
         {"area": "Kothrud (Ward B)", "condition": "Dengue", "time_bucket": "2026-W35", "count": 4},
         {"area": "Kothrud (Ward B)", "condition": "Dengue", "time_bucket": "2026-W36", "count": 5},
         {"area": "Kothrud (Ward B)", "condition": "Dengue", "time_bucket": "2026-W37", "count": 6},
         {"area": "Kothrud (Ward B)", "condition": "Dengue", "time_bucket": "2026-W38", "count": 38},
 
-        # Outbreak spike time-series 2: Gastroenteritis in Hadapsar (3, 4, 5, 29)
+        # Outbreak spike time-series 2: Gastroenteritis in Hadapsar
         {"area": "Hadapsar", "condition": "Gastroenteritis", "time_bucket": "2026-W35", "count": 3},
         {"area": "Hadapsar", "condition": "Gastroenteritis", "time_bucket": "2026-W36", "count": 4},
         {"area": "Hadapsar", "condition": "Gastroenteritis", "time_bucket": "2026-W37", "count": 5},
         {"area": "Hadapsar", "condition": "Gastroenteritis", "time_bucket": "2026-W38", "count": 29},
 
-        # Baseline time-series for Katraj Ward C Dengue (2, 3, 3) - enables live spike simulator
+        # Baseline time-series for Katraj Ward C Dengue
         {"area": "Katraj (Ward C)", "condition": "Dengue", "time_bucket": "2026-W36", "count": 2},
         {"area": "Katraj (Ward C)", "condition": "Dengue", "time_bucket": "2026-W37", "count": 3},
         {"area": "Katraj (Ward C)", "condition": "Dengue", "time_bucket": "2026-W38", "count": 3},
@@ -236,5 +279,3 @@ if __name__ == "__main__":
     with app.app_context():
         results = seed_database()
         print(f"Database seeded successfully: {results}")
-
-

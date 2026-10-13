@@ -62,7 +62,7 @@ def update_stat_count(app, area: str, condition: str, time_bucket: str, new_coun
         db.session.commit()
 
 
-def run_live_simulation(app, area="Katraj (Ward C)", condition="Dengue", time_bucket="2026-W38"):
+def run_live_simulation(app, area="Katraj", condition="Dengue", time_bucket="2026-W38"):
     """
     Run an animated live cycle:
     Normal -> Escalating Outbreak -> High Severity Peak -> Municipal Intervention -> Normalized
@@ -73,52 +73,52 @@ def run_live_simulation(app, area="Katraj (Ward C)", condition="Dengue", time_bu
     print(f"    Bucket   : {YELLOW}{time_bucket}{RESET}\n")
 
     stages = [
-        (3,  "[NORMAL] Phase 1: Baseline Cohort (Suppressed Under MIN_GROUP_SIZE < 5)", GREEN, 3),
+        (3,  "[NORMAL] Phase 1: Baseline Cohort (Suppressed Under DPDP MIN_GROUP_SIZE < 5 => Imputed NaN in ML)", GREEN, 3),
         (8,  "[ALERT]  Phase 2: Mild Influx Detected (Count = 8)", YELLOW, 3),
         (19, "[WARN]   Phase 3: Outbreak Threshold Breached (Count = 19, Alert Triggered)", YELLOW, 3),
         (37, "[SPIKE]  Phase 4: Rapid Outbreak Escalation (Count = 37 -- SEVERITY: HIGH)", RED, 3),
-        (54, "[PEAK]   Phase 5: PEAK EPIDEMIC WAVE (Count = 54 -- 2-Sigma Outbreak Detected!)", RED, 7),
+        (54, "[PEAK]   Phase 5: PEAK EPIDEMIC WAVE (Count = 54 -- 2-Sigma Outbreak / ML Spike Prob > 85%!)", RED, 5),
         (28, "[ACTION] Phase 6: PMC Municipal Intervention (Fogging & Medical Camps -> Count = 28)", CYAN, 4),
         (11, "[RECEDE] Phase 7: Outbreak Receding (Count = 11 cases)", GREEN, 3),
         (4,  "[SAFE]   Phase 8: Normalized to Safe Baseline (Count = 4)", GREEN, 1),
     ]
 
-    print(f"{CYAN}>> TIP: Keep your browser open on the Public Health Dashboard:{RESET}")
-    print(f"   URL: {BOLD}http://127.0.0.1:5000/public-health/trend-alerts{RESET}\n")
+    print(f"{CYAN}>> TIP: Keep your browser open on the Public Health Surveillance Screen:{RESET}")
+    print(f"   Vite Web App: {BOLD}http://localhost:8443 (Surveillance -> ML Outbreak Radar 2.0){RESET}\n")
     print("Press Enter to begin the simulation cycle...")
-    input()
+    try:
+        input()
+    except EOFError:
+        pass
 
     for count, name, color, delay in stages:
         update_stat_count(app, area, condition, time_bucket, count)
         print(f"{color}{BOLD}>> {name}{RESET}")
         print(f"   Database updated: {area} | {condition} = {BOLD}{count} cases{RESET}")
         if count >= 37:
-            print(f"   {RED}** REFRESH BROWSER NOW: Trend Alert is active on dashboard! **{RESET}")
+            print(f"   {RED}** REFRESH / WATCH RADAR NOW: Outbreak Alert active on ML Radar! **{RESET}")
         print(f"   Waiting {delay} seconds...\n")
         time.sleep(delay)
 
     print(f"\n{GREEN}{BOLD}*** Simulation Completed! Disease counts returned to normal baseline. ***{RESET}\n")
 
 
-def trigger_spike_only(app, area="Katraj (Ward C)", condition="Dengue", time_bucket="2026-W38", count=48):
+def trigger_spike_only(app, area="Katraj", condition="Dengue", time_bucket="2026-W38", count=48):
     """Immediately set a high outbreak spike."""
     update_stat_count(app, area, condition, time_bucket, count)
     print(f"\n{RED}{BOLD}[!] High Outbreak Spike Activated!{RESET}")
     print(f"   {area} - {condition} set to {BOLD}{count} cases{RESET}.")
-    print(f"   Check dashboard at: {CYAN}http://127.0.0.1:5000/public-health/trend-alerts{RESET}\n")
+    print(f"   Inspect ML Outbreak Radar at: {CYAN}http://localhost:8443{RESET}\n")
 
 
 def reset_to_baseline(app):
-    """Reset Katraj and Hadapsar stats back to default seed counts."""
+    """Reset Katraj and other wards back to default seed counts."""
     with app.app_context():
-        s = Stats.query.filter_by(area="Katraj (Ward C)", condition="Dengue", time_bucket="2026-W38").first()
-        if s:
-            s.count = 3
-        
-        s2 = Stats.query.filter_by(area="Kothrud (Ward B)", condition="Dengue", time_bucket="2026-W38").first()
-        if s2:
-            s2.count = 38
-        
+        # Reset common wards
+        for ward, count in [("Katraj", 3), ("Kothrud", 38), ("Hadapsar", 4), ("Aundh", 8), ("Kasba Peth", 2)]:
+            s = Stats.query.filter_by(area=ward, condition="Dengue", time_bucket="2026-W38").first()
+            if s:
+                s.count = count
         db.session.commit()
     print(f"\n{GREEN}{BOLD}[OK] Database stats reset to standard seed baseline.{RESET}\n")
 
@@ -129,12 +129,15 @@ def main():
 
     while True:
         print(f"{BOLD}Select an action:{RESET}")
-        print(f"  {CYAN}[1]{RESET} Run Animated Outbreak Cycle (Increases -> Peaks -> Recedes to normal)")
-        print(f"  {CYAN}[2]{RESET} Set Instant Outbreak Spike (Katraj Dengue = 52 cases)")
+        print(f"  {CYAN}[1]{RESET} Run Animated Outbreak Cycle (Katraj Dengue: 3 -> 54 -> 4 cases)")
+        print(f"  {CYAN}[2]{RESET} Set Instant Outbreak Spike (Katraj Dengue = 48 cases)")
         print(f"  {CYAN}[3]{RESET} Reset Stats Back to Normal Seed Baseline")
         print(f"  {CYAN}[4]{RESET} Exit Simulator")
         
-        choice = input(f"\nEnter choice [1-4]: ").strip()
+        try:
+            choice = input(f"\nEnter choice [1-4]: ").strip()
+        except EOFError:
+            break
         
         if choice == "1":
             run_live_simulation(app)

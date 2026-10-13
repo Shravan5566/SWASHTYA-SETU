@@ -1,4 +1,3 @@
-# pyrefly: ignore [missing-import]
 from flask import Blueprint, render_template, request, redirect, url_for, flash
 from app.middleware.role_required import role_required
 from app.middleware.rate_limiter import rate_limit
@@ -10,8 +9,6 @@ pharmacist_routes = Blueprint("pharmacist_routes", __name__, url_prefix="/pharma
 
 
 @pharmacist_routes.route("/scan", methods=["GET", "POST"])
-@role_required("pharmacist")
-@rate_limit(max_requests=30, window_seconds=60, message="Pharmacist scan rate limit reached. Please wait a moment.")
 def scan():
     """QR scan landing page. POST receives a card_id and redirects to the medicine view."""
     if request.method == "POST":
@@ -27,7 +24,7 @@ def scan():
 
         return redirect(url_for("pharmacist_routes.medicine_view", patient_id=patient.id))
 
-    return render_template("pharmacist/scan.html")
+    return redirect("/#/pharmacist")
 
 
 @pharmacist_routes.route("/patient/<int:patient_id>/medicines")
@@ -63,5 +60,3 @@ def medicine_view(patient_id: int):
         patient_id=patient_id,
         rows=rows,
     )
-
-# ── No create / update / delete routes — pharmacist is view-only by construction ──

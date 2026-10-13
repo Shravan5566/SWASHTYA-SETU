@@ -1,0 +1,154 @@
+{
+    "date_column": "date",
+    "test_start_date": "2024-08-12",
+    "diseases": {
+        "dengue": {
+            "cases_target": "target_dengue_cases_next_week",
+            "spike_target": "dengue_spike_next_week"
+        },
+        "malaria": {
+            "cases_target": "target_malaria_cases_next_week",
+            "spike_target": "malaria_spike_next_week"
+        },
+        "chikungunya": {
+            "cases_target": "target_chikungunya_cases_next_week",
+            "spike_target": "chikungunya_spike_next_week"
+        },
+        "influenza": {
+            "cases_target": "target_influenza_cases_next_week",
+            "spike_target": "influenza_spike_next_week"
+        },
+        "typhoid": {
+            "cases_target": "target_typhoid_cases_next_week",
+            "spike_target": "typhoid_spike_next_week"
+        },
+        "acute_diarrheal_disease": {
+            "cases_target": "target_acute_diarrheal_disease_cases_next_week",
+            "spike_target": "acute_diarrheal_disease_spike_next_week"
+        }
+    },
+    "features": {
+        "dengue": [
+            "dengue_cases",
+            "dengue_cases_lag_1w",
+            "dengue_cases_lag_2w",
+            "dengue_cases_lag_4w",
+            "dengue_cases_rolling_mean_4w",
+            "temperature_avg_c",
+            "humidity_avg_pct",
+            "rainfall_mm",
+            "city",
+            "location",
+            "latitude",
+            "longitude",
+            "calendar_year",
+            "week_sin",
+            "week_cos",
+            "month_sin",
+            "month_cos"
+        ],
+        "malaria": [
+            "malaria_cases",
+            "malaria_cases_lag_1w",
+            "malaria_cases_lag_2w",
+            "malaria_cases_lag_4w",
+            "malaria_cases_rolling_mean_4w",
+            "temperature_avg_c",
+            "humidity_avg_pct",
+            "rainfall_mm",
+            "city",
+            "location",
+            "latitude",
+            "longitude",
+            "calendar_year",
+            "week_sin",
+            "week_cos",
+            "month_sin",
+            "month_cos"
+        ],
+        "chikungunya": [
+            "chikungunya_cases",
+            "chikungunya_cases_lag_1w",
+            "chikungunya_cases_lag_2w",
+            "chikungunya_cases_lag_4w",
+            "chikungunya_cases_rolling_mean_4w",
+            "temperature_avg_c",
+            "humidity_avg_pct",
+            "rainfall_mm",
+            "city",
+            "location",
+            "latitude",
+            "longitude",
+            "calendar_year",
+            "week_sin",
+            "week_cos",
+            "month_sin",
+            "month_cos"
+        ],
+        "influenza": [
+            "influenza_cases",
+            "influenza_cases_lag_1w",
+            "influenza_cases_lag_2w",
+            "influenza_cases_lag_4w",
+            "influenza_cases_rolling_mean_4w",
+            "temperature_avg_c",
+            "humidity_avg_pct",
+            "rainfall_mm",
+            "city",
+            "location",
+            "latitude",
+            "longitude",
+            "calendar_year",
+            "week_sin",
+            "week_cos",
+            "month_sin",
+            "month_cos"
+        ],
+        "typhoid": [
+            "typhoid_cases",
+            "typhoid_cases_lag_1w",
+            "typhoid_cases_lag_2w",
+            "typhoid_cases_lag_4w",
+            "typhoid_cases_rolling_mean_4w",
+            "temperature_avg_c",
+            "humidity_avg_pct",
+            "rainfall_mm",
+            "city",
+            "location",
+            "latitude",
+            "longitude",
+            "calendar_year",
+            "week_sin",
+            "week_cos",
+            "month_sin",
+            "month_cos"
+        ],
+        "acute_diarrheal_disease": [
+            "acute_diarrheal_disease_cases",
+            "acute_diarrheal_disease_cases_lag_1w",
+            "acute_diarrheal_disease_cases_lag_2w",
+            "acute_diarrheal_disease_cases_lag_4w",
+            "acute_diarrheal_disease_cases_rolling_mean_4w",
+            "temperature_avg_c",
+            "humidity_avg_pct",
+            "rainfall_mm",
+            "city",
+            "location",
+            "latitude",
+            "longitude",
+            "calendar_year",
+            "week_sin",
+            "week_cos",
+            "month_sin",
+            "month_cos"
+        ]
+    },
+    "spike_thresholds": {
+        "dengue": 0.21000000000000002,
+        "malaria": 0.26000000000000006,
+        "chikungunya": 0.14,
+        "influenza": 0.14,
+        "typhoid": 0.14,
+        "acute_diarrheal_disease": 0.18000000000000005
+    }
+}

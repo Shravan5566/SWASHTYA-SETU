@@ -1,8 +1,6 @@
-# pyrefly: ignore [missing-import]
 """
 services/anonymizer.py — Privacy-Preserving Differential Anonymizer for Public Health
 
-Per Implementation Plan Step 10:
 - This is the SINGLE place the minimum-group-size rule lives.
 - Given an area + condition + time_bucket, if count < MIN_GROUP_SIZE, return an
   "insufficient data" sentinel instead of the real number.
@@ -10,8 +8,7 @@ Per Implementation Plan Step 10:
 - NO patient-level models (Patient, Visit) or PII identifiers are ever imported or touched here.
 """
 
-from typing import Any, Dict, List, Optional, Tuple
-from sqlalchemy import func
+from typing import Any, Dict, List, Optional
 from app.config import MIN_GROUP_SIZE
 from app.extensions import db
 from app.models.stats import Stats

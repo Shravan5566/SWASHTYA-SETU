@@ -1,4 +1,3 @@
-# pyrefly: ignore [missing-import]
 """
 middleware/rate_limiter.py — In-Memory Sliding Window Rate Limiter
 
@@ -16,7 +15,7 @@ import time
 import threading
 from functools import wraps
 from typing import Dict, List, Optional
-from flask import request, jsonify, render_template, Response, flash, redirect, url_for
+from flask import request, jsonify, render_template, Response, flash
 from flask_login import current_user
 
 _lock = threading.Lock()
@@ -28,14 +27,14 @@ def _get_client_identifier() -> str:
     """Derive unique client key using authenticated user ID or real IP address."""
     if current_user and current_user.is_authenticated:
         return f"user:{current_user.id}"
-    
+
     # Check for reverse proxy headers (e.g. Railway, Cloudflare, Nginx)
     forwarded_for = request.headers.get("X-Forwarded-For")
     if forwarded_for:
         client_ip = forwarded_for.split(",")[0].strip()
     else:
         client_ip = request.remote_addr or "127.0.0.1"
-    
+
     return f"ip:{client_ip}"
 
 
@@ -63,7 +62,7 @@ def is_rate_limited(key: str, max_requests: int, window_seconds: int) -> bool:
 def rate_limit(max_requests: int = 60, window_seconds: int = 60, message: Optional[str] = None):
     """
     Decorator to apply custom rate limiting to specific Flask view routes.
-    
+
     Example:
         @auth_routes.route("/login", methods=["POST"])
         @rate_limit(max_requests=10, window_seconds=60)
@@ -78,8 +77,15 @@ def rate_limit(max_requests: int = 60, window_seconds: int = 60, message: Option
             rate_key = f"{endpoint}:{client_id}"
 
             if is_rate_limited(rate_key, max_requests, window_seconds):
-                err_msg = message or f"Too many requests. Please wait a moment before trying again."
-                
+                err_msg = message or "Too many requests. Please wait a moment before trying again."
+
+                # Terminal log
+                try:
+                    from app.utils.terminal_logger import log_rate_limit
+                    log_rate_limit(endpoint, client_id, window_seconds)
+                except Exception:
+                    pass
+
                 # If AJAX / JSON request
                 if request.is_json or request.headers.get("X-Requested-With") == "XMLHttpRequest":
                     resp = jsonify({
@@ -90,7 +96,7 @@ def rate_limit(max_requests: int = 60, window_seconds: int = 60, message: Option
                     resp.status_code = 429
                     resp.headers["Retry-After"] = str(window_seconds)
                     return resp
-                
+
                 # Standard HTML response
                 flash(f"⚠️ Rate limit reached: {err_msg}", "error")
                 return Response(

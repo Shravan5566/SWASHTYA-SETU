@@ -1,17 +1,14 @@
 /**
- * qr_scanner.js — Upgraded Universal QR Scanner
- * Uses Html5Qrcode engine for 100% browser compatibility (no experimental flags needed).
- * Supports live camera scanning, QR image file upload, and manual entry.
+ * qr_scanner.js — Official Html5QrcodeScanner Integration
+ * Uses the proven Html5QrcodeScanner engine for 100% camera compatibility across laptops,
+ * webcams, and mobile devices.
  */
 
 (function () {
   const statusEl = document.getElementById("qr-status");
   const manualInput = document.getElementById("manual-card-id");
   const manualBtn = document.getElementById("manual-submit-btn");
-  const fileInput = document.getElementById("qr-file-input");
-
-  let html5QrCode = null;
-  let isScanning = false;
+  let scannerInstance = null;
 
   function setStatus(msg, isError = false) {
     if (!statusEl) return;
@@ -22,7 +19,7 @@
   async function submitCardId(cardId) {
     if (!cardId) return;
     const cleanId = cardId.trim();
-    setStatus(`Card detected: ${cleanId}. Verifying with server…`);
+    setStatus(`Card identified: ${cleanId}. Requesting OTP…`);
 
     try {
       const resp = await fetch("/ajax/scan-card", {
@@ -33,8 +30,12 @@
       const data = await resp.json();
 
       if (data.ok) {
-        setStatus("Patient card verified! Redirecting to OTP verification…");
-        stopScanner();
+        setStatus("Patient card verified! Opening OTP verification…");
+        if (scannerInstance) {
+          try {
+            await scannerInstance.clear();
+          } catch (e) {}
+        }
         setTimeout(() => {
           window.location.href = "/doctor/otp-verify";
         }, 300);
@@ -46,91 +47,48 @@
     }
   }
 
-  function stopScanner() {
-    if (html5QrCode && isScanning) {
-      html5QrCode
-        .stop()
-        .then(() => {
-          isScanning = false;
-        })
-        .catch(() => {});
-    }
-  }
+  // Global helper for 1-click quick-select demo buttons
+  window.quickSelectPatient = submitCardId;
 
-  function onScanSuccess(decodedText, decodedResult) {
+  function onScanSuccess(decodedText) {
     if (!decodedText) return;
-    stopScanner();
+    console.log("QR Code Decoded:", decodedText);
     submitCardId(decodedText);
   }
 
-  function onScanFailure(error) {
-    // Normal frame-by-frame non-match while searching; ignore to avoid spamming UI
+  function onScanError(errorMessage) {
+    // Normal frame-by-frame non-match while searching; do not spam
   }
 
-  async function startCameraScanner() {
-    const readerElement = document.getElementById("reader");
-    if (!readerElement || typeof Html5Qrcode === "undefined") {
-      setStatus("QR scanner engine not ready. Please use manual entry below.", true);
+  function initScanner() {
+    const readerEl = document.getElementById("reader");
+    if (!readerEl) return;
+
+    if (typeof Html5QrcodeScanner === "undefined") {
+      setStatus("QR Scanner library loading or unavailable. Use 1-click buttons or manual entry.", true);
       return;
     }
 
     try {
-      html5QrCode = new Html5Qrcode("reader");
-
-      const config = {
-        fps: 12,
-        qrbox: { width: 220, height: 220 },
-        aspectRatio: 1.333333,
-      };
-
-      setStatus("Requesting camera access…");
-
-      await html5QrCode.start(
-        { facingMode: "environment" },
-        config,
-        onScanSuccess,
-        onScanFailure
+      scannerInstance = new Html5QrcodeScanner(
+        "reader",
+        {
+          fps: 15,
+          qrbox: { width: 250, height: 250 },
+          rememberLastUsedCamera: true,
+          aspectRatio: 1.25,
+          showTorchButtonIfSupported: true,
+          showZoomSliderIfSupported: true,
+        },
+        /* verbose= */ false
       );
 
-      isScanning = true;
-      setStatus("Camera active — point at the patient QR card.");
-    } catch (err) {
-      isScanning = false;
-      const errStr = (err && err.message) || String(err);
-      if (errStr.includes("NotAllowedError") || errStr.includes("Permission")) {
-        setStatus("Camera permission denied. Please allow camera access in browser settings, or enter card ID below.", true);
-      } else if (errStr.includes("NotFoundError") || errStr.includes("DevicesNotFoundError")) {
-        setStatus("No camera detected on this device. Use manual entry or upload a QR image below.", true);
-      } else if (errStr.includes("NotReadableError") || errStr.includes("TrackStartError")) {
-        setStatus("Camera is in use by another application (e.g. Lenovo Vantage/Teams) or privacy shutter is closed.", true);
-      } else {
-        setStatus("Camera unavailable. You can use manual entry or upload an image below.", true);
-      }
+      scannerInstance.render(onScanSuccess, onScanError);
+      setStatus("Point your webcam at the QR code, or click 'Request Camera Permissions' if prompted.");
+    } catch (e) {
+      console.error("Scanner init error:", e);
+      setStatus("Could not initialize camera scanner: " + e.message, true);
     }
-  }
-
-  // File Upload scanning (allows scanning saved QR card images)
-  if (fileInput) {
-    fileInput.addEventListener("change", async (e) => {
-      const file = e.target.files && e.target.files[0];
-      if (!file) return;
-
-      if (!html5QrCode) {
-        html5QrCode = new Html5Qrcode("reader");
-      }
-
-      setStatus(`Scanning image ${file.name}…`);
-      try {
-        const decodedText = await html5QrCode.scanFile(file, true);
-        if (decodedText) {
-          submitCardId(decodedText);
-        } else {
-          setStatus("Could not detect a QR code in that image.", true);
-        }
-      } catch (err) {
-        setStatus("No valid QR code detected in the selected image. Try another file or enter ID manually.", true);
-      }
-    });
   }
 
   // Manual Card ID entry
@@ -138,7 +96,7 @@
     manualBtn.addEventListener("click", () => {
       const cardId = manualInput ? manualInput.value.trim() : "";
       if (!cardId) {
-        setStatus("Please enter a card ID.", true);
+        setStatus("Please enter a card ID (e.g. SS-TEST-001).", true);
         return;
       }
       submitCardId(cardId);
@@ -154,8 +112,5 @@
     });
   }
 
-  // Start scanner on page load
-  window.addEventListener("DOMContentLoaded", () => {
-    startCameraScanner();
-  });
+  window.addEventListener("DOMContentLoaded", initScanner);
 })();

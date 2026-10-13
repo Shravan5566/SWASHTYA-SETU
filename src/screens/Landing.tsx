@@ -2,6 +2,8 @@ import { useLang } from '../i18n'
 import { FullLogo } from '../ui'
 import Royal3DCard from '@/components/ui/royal-3d-card'
 import TextBlockAnimation from '@/components/ui/text-block-animation'
+import { FlowButton } from '@/components/ui/flow-button'
+import SpotlightCard from '@/components/ui/SpotlightCard'
 
 const pillars = [
   {
@@ -23,7 +25,7 @@ const pillars = [
   {
     k: 'p3',
     t: 'Public Health Surveillance Radar',
-    d: '2-Sigma mathematical disease anomaly detection across 15 Pune wards with differential privacy thresholds.',
+    d: '2-Sigma mathematical disease anomaly detection across 15 Pune wards with minimum group-size privacy thresholds (k ≥ 5).',
     n: '03',
     go: '#/surveillance',
     tag: 'Public Health',
@@ -95,12 +97,12 @@ export default function Landing() {
           </p>
 
           <div className="mt-8 flex flex-wrap gap-3.5 items-center">
-            <a href="#/apply" className="btn btn-saffron text-[15px] h-12 px-6 shadow-sm">
+            <FlowButton href="#/apply" className="btn btn-saffron text-[15px] h-12 px-6 shadow-sm">
               {t('cta.apply', 'Apply for Digital Health Card')} →
-            </a>
-            <a href="#/track" className="btn btn-outline-green text-[15px] h-12 px-6">
+            </FlowButton>
+            <FlowButton href="#/track" className="btn btn-outline-green text-[15px] h-12 px-6">
               {t('cta.track', 'Track Application Status')}
-            </a>
+            </FlowButton>
           </div>
 
           {/* Infrastructure Capability Highlights */}
@@ -153,10 +155,23 @@ export default function Landing() {
 
         <div className="grid md:grid-cols-2 gap-5">
           {pillars.map((p) => (
-            <a
+            <SpotlightCard
               key={p.k}
+              as="a"
               href={p.go}
-              className="card lift p-8 md:p-9 block bg-white hover:bg-slate-50/50 relative overflow-hidden group"
+              theme="light"
+              spotlightColor="#ec995f"
+              intensity={0.4}
+              spotlightSize={260}
+              softness={0.7}
+              shape="circle"
+              borderGlow={0.65}
+              proximity={80}
+              smoothing={0.25}
+              grain={0}
+              ambient={false}
+              flare={true}
+              className="p-8 md:p-9 block relative group no-underline text-inherit cursor-pointer transition-transform duration-200 hover:-translate-y-1"
             >
               <div className="flex items-center justify-between mb-6">
                 <span className="font-mono text-sm font-extrabold text-saffron tracking-wider bg-orange-50 px-2.5 py-1 rounded-md border border-orange-200/60">
@@ -174,7 +189,7 @@ export default function Landing() {
                 <span>{t('enter.terminal', 'Enter Terminal')}</span>
                 <span>→</span>
               </div>
-            </a>
+            </SpotlightCard>
           ))}
         </div>
       </section>
@@ -196,12 +211,12 @@ export default function Landing() {
             </div>
           </div>
           <div className="flex items-center gap-3 shrink-0">
-            <a href="#/apply" className="btn btn-saffron text-sm px-5 py-2.5">
+            <FlowButton href="#/apply" className="btn btn-saffron text-sm px-5 py-2.5">
               Issue My Health Card
-            </a>
-            <a href="#/surveillance" className="btn btn-outline-green text-sm px-5 py-2.5">
+            </FlowButton>
+            <FlowButton href="#/surveillance" className="btn btn-outline-green text-sm px-5 py-2.5">
               Surveillance Radar
-            </a>
+            </FlowButton>
           </div>
         </div>
       </section>

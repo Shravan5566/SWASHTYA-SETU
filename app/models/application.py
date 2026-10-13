@@ -42,7 +42,7 @@ class Application(db.Model):
     allergies = db.Column(db.Text, nullable=True)
 
     # Staff Specific (Doctor / Pharmacist)
-    council_reg_no = db.Column(db.String(80), nullable=True)  # MMC / MSPC number
+    council_reg_no = db.Column(db.String(80), nullable=True)   # MMC / MSPC number
     qualification = db.Column(db.String(100), nullable=True)
     specialization = db.Column(db.String(100), nullable=True)
     experience_years = db.Column(db.String(20), nullable=True)
@@ -65,8 +65,9 @@ class Application(db.Model):
             "pharmacist": "APP-PHM",
             "patient": "APP-PAT",
         }.get(role, "APP-GEN")
+        year = datetime.utcnow().year
         token = secrets.token_hex(3).upper()
-        return f"{prefix}-{token}"
+        return f"{prefix}-{year}-{token}"
 
     def __repr__(self) -> str:
         return f"<Application app_no='{self.app_no}' role='{self.role}' status='{self.status}'>"

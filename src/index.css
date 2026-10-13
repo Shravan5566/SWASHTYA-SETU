@@ -310,6 +310,15 @@
   50% { transform: scaleY(1); }
 }
 
+@keyframes flow-stream {
+  from {
+    stroke-dashoffset: 0;
+  }
+  to {
+    stroke-dashoffset: -32;
+  }
+}
+
 @media print {
   body * {
     visibility: hidden;

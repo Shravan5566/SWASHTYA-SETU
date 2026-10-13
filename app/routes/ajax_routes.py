@@ -1,6 +1,5 @@
-# pyrefly: ignore [missing-import]
 from flask import Blueprint, request, jsonify, session
-from flask_login import current_user, login_required
+from flask_login import current_user
 from app.middleware.role_required import role_required
 from app.middleware.rate_limiter import rate_limit
 from app.services.qr_service import lookup_patient_by_card
@@ -43,7 +42,10 @@ def scan_card():
 
     # Store patient_id in session so OTP verify route knows which patient
     session["otp_patient_id"] = patient.id
-    session["otp_patient_name"] = decrypt(patient.name_encrypted)
+    try:
+        session["otp_patient_name"] = decrypt(patient.name_encrypted)
+    except Exception:
+        session["otp_patient_name"] = "Patient"
 
     return jsonify({"ok": True, "patient_id": patient.id})
 

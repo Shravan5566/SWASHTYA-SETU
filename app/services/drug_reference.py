@@ -1,4 +1,3 @@
-# pyrefly: ignore [missing-import]
 """
 Drug Reference & Fuzzy Spell Corrector for Swasthya Setu.
 
@@ -8,7 +7,7 @@ Provides:
 - Conflict, allergy, and refill-restriction rule flagging.
 """
 
-from typing import Dict, List, Optional, Tuple
+from typing import Dict, List, Optional
 from rapidfuzz import process, fuzz
 
 
@@ -185,18 +184,6 @@ def lookup_drug(name: str) -> Optional[dict]:
 def correct_drug_name(raw_name: str, threshold: float = 70.0) -> dict:
     """
     Fuzzy-corrects a typed or voice-transcribed drug name.
-
-    Returns:
-        dict: {
-            "original": str,
-            "match": str or None,
-            "score": float,
-            "is_exact": bool,
-            "is_corrected": bool,
-            "category": str or None,
-            "refill_restricted": bool,
-            "warnings": list of str
-        }
     """
     if not raw_name or not raw_name.strip():
         return {

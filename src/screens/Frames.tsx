@@ -74,13 +74,13 @@ export function StatusFrame() {
 }
 
 export function LoginFrame() {
-  const dir = [['🩺 Doctor OPD', 'dr.aisha.verma'], ['💊 Pharmacist', 'rahul.patel'], ['📊 Epidemiologist', 'priya.nair'], ['🛡️ System Admin', 'vikram.rao']]
+  const dir = [['🩺 Doctor OPD', 'dr.rajesh.kulkarni'], ['💊 Pharmacist', 'ramesh.kadam'], ['📊 Epidemiologist', 'dr.meenakshi.sundaram'], ['🛡️ System Admin', 'director.raman']]
   return (
     <Frame w={460} path="/login">
       <Panel>
         <div className="flex flex-col items-center text-center mb-8"><Emblem size={56} /><div className="font-extrabold text-xl mt-3">Swasthya Setu</div><div className="font-mono text-[10px] tracking-[0.2em] text-slate2 mt-1">SCAN • CARE • TOGETHER</div></div>
         <h1 className="text-2xl font-extrabold tracking-tight text-center">Staff Sign In</h1><p className="text-slate2 text-sm text-center mt-1 mb-8">Healthcare Practitioner & Administrative Staff Access</p>
-        <div className="grid gap-5 mb-6"><F l="Username" ph="e.g. dr.aisha.verma" /><div><label className="label">Password</label><input type="password" className="input" placeholder="Enter your password" /></div></div>
+        <div className="grid gap-5 mb-6"><F l="Username" ph="e.g. dr.rajesh.kulkarni" /><div><label className="label">Password</label><input type="password" className="input" placeholder="Enter your password" /></div></div>
         <button className="btn btn-saffron w-full h-12 mb-8">Authenticate & Sign In</button>
         <div className="eyebrow mb-3">Accredited directory</div>
         <div className="grid grid-cols-2 gap-2.5">{dir.map(([a, b]) => <div key={b} className="lift border border-line rounded-xl p-3.5 cursor-pointer"><div className="text-sm font-semibold">{a}</div><div className="font-mono text-[11px] text-slate2 mt-0.5">{b}</div></div>)}</div>
@@ -91,7 +91,7 @@ export function LoginFrame() {
 }
 
 export function ScanFrame() {
-  const chips = ['Meera Joshi (Card: SS-TEST-001 · Shivajinagar)', 'Arjun Sharma (Card: SS-TEST-002 · Kothrud)', 'Priya Sen (Card: SS-TEST-003 · Katraj)']
+  const chips = ['Meera Joshi (Card: SS-TEST-001 · Shivajinagar)', 'Arjun Sharma (Card: SS-TEST-002 · Kothrud)', 'Kavita Patil (Card: SS-TEST-003 · Katraj)']
   return (
     <Frame w={640} path="/doctor/scan & /doctor/otp-verify">
       <div className="bg-alabaster border border-line rounded-2xl p-5 mb-6">

@@ -12,7 +12,6 @@ if __name__ == "__main__":
     app = create_app()
     with app.app_context():
         db_uri = app.config.get("SQLALCHEMY_DATABASE_URI", "")
-        # Mask password in URI for clean logging
         safe_uri = db_uri
         if "@" in db_uri:
             prefix, rest = db_uri.split("@", 1)

@@ -1,4 +1,3 @@
-# pyrefly: ignore [missing-import]
 """
 routes/application_routes.py — Public Portal Applications
 
@@ -6,9 +5,6 @@ Dedicated routes for:
 1. Citizen application for Swasthya Setu Digital Health Card (Patient) — /apply/health-card
 2. Professional accreditation application for Doctor & Pharmacist — /apply/staff
 3. Real-time application status tracker — /apply/status
-
-Note: Public Health Administrator accounts are restricted and can ONLY
-be provisioned directly by the System Administrator in the Admin console.
 """
 
 from datetime import datetime
@@ -44,7 +40,7 @@ PUNE_LOCALITIES = [
 def apply_health_card():
     """Dedicated page for citizen/patient digital health card application."""
     if request.method == "GET":
-        return render_template("apply/health_card.html", pune_localities=PUNE_LOCALITIES)
+        return redirect("/#/apply")
 
     full_name = request.form.get("full_name", "").strip()
     phone = request.form.get("phone", "").strip()
@@ -64,7 +60,7 @@ def apply_health_card():
 
     if not full_name or not phone or not locality:
         flash("Full name, phone number, and Pune locality are required fields.", "error")
-        return render_template("apply/health_card.html", pune_localities=PUNE_LOCALITIES)
+        return redirect("/#/apply")
 
     app_no = Application.generate_app_no("patient")
 
@@ -98,7 +94,7 @@ def apply_health_card():
         "The Pune Health Administration will verify your details and issue your card.",
         "success",
     )
-    return redirect(url_for("application_routes.check_status", q=app_no))
+    return redirect("/#/track")
 
 
 @application_routes.route("/apply/staff", methods=["GET", "POST"])
@@ -106,7 +102,7 @@ def apply_health_card():
 def apply_staff():
     """Dedicated page for healthcare professional accreditation application (Doctor or Pharmacist)."""
     if request.method == "GET":
-        return render_template("apply/staff.html", pune_localities=PUNE_LOCALITIES)
+        return redirect("/#/apply")
 
     role = request.form.get("role", "").strip()
     if role not in ["doctor", "pharmacist"]:
@@ -166,9 +162,8 @@ def apply_staff():
 @application_routes.route("/apply/ecard/download")
 def download_ecard():
     """
-    Render a beautiful, printable digital e-Card page for an approved patient.
+    Render printable digital e-Card page for an approved patient.
     Accessed via /apply/ecard/download?q=<card_id or app_no>
-    The browser's built-in print dialog is triggered automatically via JS.
     """
     query = request.args.get("q", "").strip()
     if not query:
@@ -246,4 +241,4 @@ def check_status():
     if request.headers.get("X-Requested-With") == "XMLHttpRequest" or request.is_json:
         return jsonify(result or {"found": False})
 
-    return render_template("apply/status.html", status_result=result, query_param=query_param)
+    return redirect("/#/track")

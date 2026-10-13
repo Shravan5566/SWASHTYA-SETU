@@ -363,9 +363,19 @@ def approve_application(app_id: int):
             app_record.reviewed_at = datetime.utcnow()
             db.session.commit()
 
-            # Send approval email with e-card download & postal dispatch notice
+            # Send approval email with attached health card
             if app_record.email:
-                send_patient_approval_email(app_record.email, app_record.full_name, patient.card_id)
+                calc_age = app_record.dob or "28 Years"
+                send_patient_approval_email(
+                    to_email=app_record.email,
+                    full_name=app_record.full_name,
+                    card_id=patient.card_id,
+                    age=calc_age,
+                    gender=app_record.gender or "—",
+                    blood_group=app_record.blood_group or "O+",
+                    locality=app_record.locality or "Pune",
+                    phone=app_record.phone,
+                )
 
             flash(
                 f"Approved Health Card for {app_record.full_name}! "

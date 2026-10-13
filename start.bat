@@ -8,15 +8,15 @@ echo ========================================================
 cd /d "%~dp0"
 
 :: Auto-detect project folder whether launched from Desktop, SS pccoe, or health-01
-if exist "run.py" (
-    goto :FOUND
-)
 if exist "health-01\run.py" (
     cd "health-01"
     goto :FOUND
 )
 if exist "SS pccoe\health-01\run.py" (
     cd "SS pccoe\health-01"
+    goto :FOUND
+)
+if exist "run.py" (
     goto :FOUND
 )
 

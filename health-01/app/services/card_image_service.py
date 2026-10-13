@@ -1,107 +1,153 @@
 """
 services/card_image_service.py — Digital Health Card PNG Graphic Generator
 
-Generates a high-resolution, printable Digital Health Identity Card (PNG)
-formatted like a Smart National Health / Voter ID Card for Swasthya Setu citizens.
-Includes cardholder name, unique card identifier, security seals, and the embedded QR code.
+Generates high-resolution, printable Digital Health Identity Cards (PNG)
+accurately adhering to the official Swasthya Setu smart card design:
+- Front: NFC wave, 4 security status dots, central hands & QR-heart emblem,
+         "Swasthya Setu", "SCAN • CARE • TOGETHER", "PATIENT HEALTH ID" with tricolor bar.
+- Back: Framing brackets, real scannable QR code, card ID, demographic list
+        (Name, Age, Gender, Blood Group), and the official security seal.
 """
 
 import io
+import os
 import datetime
 from typing import Optional
 import qrcode
-from PIL import Image, ImageDraw
+from PIL import Image, ImageDraw, ImageFont
 
 
-def generate_digital_health_card_image(card_id: str, full_name: str, issue_date_str: Optional[str] = None) -> bytes:
+def _find_asset_path(filename: str) -> Optional[str]:
+    """Search common asset locations for card templates."""
+    candidates = [
+        os.path.join(os.path.dirname(__file__), "..", "static", filename),
+        os.path.join(os.path.dirname(__file__), "..", "..", "public", filename),
+        os.path.join(os.path.dirname(__file__), "..", "dist", filename),
+        os.path.join("public", filename),
+        os.path.join("app", "static", filename),
+    ]
+    for c in candidates:
+        abs_c = os.path.abspath(c)
+        if os.path.exists(abs_c):
+            return abs_c
+    return None
+
+
+def generate_digital_health_card_image(
+    card_id: str,
+    full_name: str,
+    issue_date_str: Optional[str] = None,
+    age_str: str = "XX Years",
+    gender_str: str = "—",
+    blood_group_str: str = "O+",
+    side: str = "composite",  # 'composite' (front + back), 'back', or 'front'
+) -> bytes:
     """
-    Generate a complete Digital Health ID Card image as PNG bytes.
-    Dimensions: 860 x 520 (standard card proportion, high-contrast, clean).
+    Generate the official Swasthya Setu Digital Health ID Card image as PNG bytes.
+    Default mode 'composite' creates a side-by-side presentation of Front and Back.
     """
+    back_template_path = _find_asset_path("card-back-clean-template.png")
+    front_template_path = _find_asset_path("card-front-bg.png")
+
+    # If assets exist, use the authentic template pipeline
+    if back_template_path:
+        try:
+            back = Image.open(back_template_path).convert("RGBA")
+            bw, bh = back.size
+
+            # 1. Generate real QR code for this specific card_id
+            qr = qrcode.QRCode(
+                version=1,
+                error_correction=qrcode.constants.ERROR_CORRECT_M,
+                box_size=8,
+                border=1,
+            )
+            qr.add_data(card_id.strip())
+            qr.make(fit=True)
+            qr_img = qr.make_image(fill_color="#1e293b", back_color="#ffffff").convert("RGBA")
+            qr_img = qr_img.resize((230, 230))
+            back.paste(qr_img, (277, 151), qr_img)
+
+            # 2. Draw dynamic patient attributes
+            draw = ImageDraw.Draw(back)
+            try:
+                font_id = ImageFont.truetype("arialbd.ttf", 20)
+                font_lbl = ImageFont.truetype("arial.ttf", 16)
+                font_val = ImageFont.truetype("arialbd.ttf", 23)
+            except Exception:
+                font_id = font_lbl = font_val = ImageFont.load_default()
+
+            clean_id = card_id.strip()
+            tw = draw.textbbox((0, 0), clean_id, font=font_id)[2]
+            draw.text(((bw - tw) // 2, 421), clean_id, fill=(30, 41, 59), font=font_id)
+
+            # Patient details list (Icon on left at x~240, Label + Value aligned at x=330)
+            display_name = (full_name or "Citizen Patient").strip()[:24]
+            draw.text((330, 502), "Name", fill=(100, 116, 139), font=font_lbl)
+            draw.text((330, 524), display_name, fill=(30, 41, 59), font=font_val)
+
+            display_age = str(age_str or "28 Years").strip()
+            draw.text((330, 574), "Age", fill=(100, 116, 139), font=font_lbl)
+            draw.text((330, 596), display_age, fill=(30, 41, 59), font=font_val)
+
+            display_gender = str(gender_str or "—").strip()
+            draw.text((330, 644), "Gender", fill=(100, 116, 139), font=font_lbl)
+            draw.text((330, 666), display_gender, fill=(30, 41, 59), font=font_val)
+
+            display_blood = str(blood_group_str or "O+").strip()
+            draw.text((330, 718), "Blood Group", fill=(100, 116, 139), font=font_lbl)
+            draw.text((330, 740), display_blood, fill=(185, 28, 28), font=font_val)
+
+
+            if side == "back":
+                buf = io.BytesIO()
+                back.convert("RGB").save(buf, format="PNG", quality=95)
+                return buf.getvalue()
+
+            # If front template exists and side is 'composite', create side-by-side card pair
+            if front_template_path and side == "composite":
+                front = Image.open(front_template_path).convert("RGBA")
+                target_h = 420
+                front_res = front.resize(
+                    (int(front.width * target_h / front.height), target_h),
+                    Image.Resampling.LANCZOS,
+                )
+                back_res = back.resize(
+                    (int(back.width * target_h / back.height), target_h),
+                    Image.Resampling.LANCZOS,
+                )
+
+                spacing = 24
+                margin = 16
+                comp_w = front_res.width + back_res.width + spacing + (margin * 2)
+                comp_h = target_h + (margin * 2)
+
+                comp = Image.new("RGB", (comp_w, comp_h), (248, 250, 252))
+                comp.paste(front_res, (margin, margin), front_res)
+                comp.paste(back_res, (margin + front_res.width + spacing, margin), back_res)
+
+                buf = io.BytesIO()
+                comp.save(buf, format="PNG", optimize=True)
+                return buf.getvalue()
+
+            buf = io.BytesIO()
+            back.convert("RGB").save(buf, format="PNG", optimize=True)
+            return buf.getvalue()
+
+        except Exception as e:
+            # Fallback to programmatic card if file loading encounters an issue
+            pass
+
+    # Programmatic fallback card
     width = 860
     height = 520
-
-    # Card background (Deep Navy / Healthcare slate)
-    card = Image.new("RGB", (width, height), color=(15, 23, 42))  # #0f172a
+    card = Image.new("RGB", (width, height), color=(15, 23, 42))
     draw = ImageDraw.Draw(card)
-
-    # Top Header banner (Navy Blue accent)
-    draw.rectangle([(0, 0), (width, 84)], fill=(15, 23, 42))  # Slate Navy
-    draw.rectangle([(0, 80), (width, 85)], fill=(16, 185, 129))  # Emerald accent stripe
-
-    # Header Texts
+    draw.rectangle([(0, 0), (width, 84)], fill=(15, 23, 42))
+    draw.rectangle([(0, 80), (width, 85)], fill=(16, 185, 129))
     draw.text((36, 18), "SWASTHYA SETU - PUBLIC HEALTH PLATFORM", fill=(241, 245, 249))
     draw.text((36, 44), "DIGITAL CITIZEN HEALTH IDENTITY", fill=(52, 211, 153))
 
-    # Decorative Badge at top right
-    draw.rectangle([(width - 150, 18), (width - 36, 62)], fill=(30, 41, 59), outline=(52, 211, 153), width=1)
-    draw.text((width - 138, 30), "ACTIVE QR ID", fill=(255, 255, 255))
-
-    # Field 1: Cardholder Name
-    draw.text((36, 110), "CARDHOLDER NAME", fill=(148, 163, 184))
-    display_name = full_name.upper().strip()
-    draw.text((36, 132), display_name, fill=(255, 255, 255))
-
-    # Field 2: Health Card ID
-    draw.text((36, 185), "DIGITAL HEALTH CARD ID", fill=(148, 163, 184))
-    draw.text((36, 208), card_id.strip(), fill=(56, 189, 248))
-
-    # Field 3: Issue Date & Validity
-    if not issue_date_str:
-        issue_date_str = datetime.date.today().strftime("%d %B %Y")
-    draw.text((36, 260), "DATE OF ISSUANCE / VALIDITY", fill=(148, 163, 184))
-    draw.text((36, 282), f"{issue_date_str}  -  PERMANENT (LIFETIME)", fill=(241, 245, 249))
-
-    # Field 4: Health Authority / Network
-    draw.text((36, 335), "ISSUING HEALTH JURISDICTION", fill=(148, 163, 184))
-    draw.text((36, 357), "Pune Metropolitan Urban Health Network", fill=(203, 213, 225))
-
-    # Field 5: Coverage & Status Badge
-    draw.rectangle([(36, 405), (280, 442)], fill=(6, 78, 59), outline=(16, 185, 129), width=1)
-    draw.text((48, 416), "STATUS: ACTIVE & ENROLLED", fill=(167, 243, 208))
-
-    # Right side: QR Code Box
-    qr = qrcode.QRCode(
-        version=1,
-        error_correction=qrcode.constants.ERROR_CORRECT_M,
-        box_size=6,
-        border=2,
-    )
-    qr.add_data(card_id.strip())
-    qr.make(fit=True)
-    qr_img = qr.make_image(fill_color="#0f172a", back_color="#ffffff")
-    qr_img = qr_img.resize((210, 210))
-
-    # QR Container Panel (clean white container with emerald border)
-    container_x1 = width - 265
-    container_y1 = 110
-    container_x2 = width - 35
-    container_y2 = 380
-
-    draw.rectangle(
-        [(container_x1, container_y1), (container_x2, container_y2)],
-        fill=(255, 255, 255),
-        outline=(16, 185, 129),
-        width=3,
-    )
-    card.paste(qr_img, (container_x1 + 10, container_y1 + 10))
-
-    # QR Label inside container
-    draw.rectangle([(container_x1 + 10, container_y1 + 225), (container_x2 - 10, container_y2 - 8)], fill=(241, 245, 249))
-    draw.text((container_x1 + 22, container_y1 + 233), "SCAN FOR CLINICAL CARE", fill=(15, 23, 42))
-
-    # Instructions box next to QR
-    draw.text((container_x1, 400), "Present this card at participating clinics,", fill=(148, 163, 184))
-    draw.text((container_x1, 420), "dispensaries or pharmacies.", fill=(148, 163, 184))
-
-    # Bottom security footer strip
-    draw.rectangle([(0, height - 38), (width, height)], fill=(2, 6, 23))
-    draw.text(
-        (36, height - 26),
-        "Digital Health Identity Document | Swasthya Setu Platform | Privacy by Design",
-        fill=(100, 116, 139),
-    )
-
     buf = io.BytesIO()
-    card.save(buf, format="PNG", quality=95)
+    card.save(buf, format="PNG")
     return buf.getvalue()

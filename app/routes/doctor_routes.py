@@ -1,13 +1,11 @@
-# pyrefly: ignore [missing-import]
 from datetime import datetime, timedelta
-from flask import Blueprint, render_template, request, redirect, url_for, session, abort, flash
+from flask import Blueprint, render_template, request, redirect, url_for, session, abort, flash, current_app
 from flask_login import current_user
 from app.middleware.role_required import role_required
 from app.middleware.rate_limiter import rate_limit
 from app.extensions import db
 from app.models.patient import Patient
 from app.models.visit import Visit
-from app.services.qr_service import lookup_patient_by_card
 from app.services.otp_service import validate_access_token
 from app.config import DOCTOR_RECORD_EDIT_WINDOW_HOURS
 from app.utils.crypto import decrypt
@@ -45,34 +43,41 @@ def _get_authorised_patient(patient_id: int) -> Patient:
 # Doctor dashboard
 # ─────────────────────────────────────────────────────────────────────────────
 @doctor_routes.route("/dashboard")
-@role_required("doctor")
 def dashboard():
-    return redirect(url_for("doctor_routes.scan_qr"))
+    return redirect("/#/doctor")
 
 
 # ─────────────────────────────────────────────────────────────────────────────
-# Step 7.2 — QR scan page (camera → ajax → OTP page)
+# QR scan page (camera -> ajax -> OTP page)
 # ─────────────────────────────────────────────────────────────────────────────
 @doctor_routes.route("/scan")
-@role_required("doctor")
 def scan_qr():
-    return render_template("doctor/scan_qr.html")
+    return redirect("/#/doctor")
 
 
-# ─────────────────────────────────────────────────────────────────────────────
-# Step 7.3 — OTP verification page
-# ─────────────────────────────────────────────────────────────────────────────
 @doctor_routes.route("/otp-verify")
-@role_required("doctor")
 def otp_verify():
-    if not session.get("otp_patient_id"):
+    return redirect("/#/doctor")
+    patient_id = session.get("otp_patient_id")
+    if not patient_id:
         flash("Please scan a patient card first.", "info")
         return redirect(url_for("doctor_routes.scan_qr"))
-    return render_template("doctor/otp_verify.html")
+    
+    demo_otp = None
+    try:
+        from app.services.otp_service import get_raw_otp_for_testing
+        raw = get_raw_otp_for_testing(patient_id)
+        if raw:
+            demo_otp = raw.get("raw_otp")
+    except Exception:
+        pass
+
+    patient_name = session.get("otp_patient_name", "Patient")
+    return render_template("doctor/otp_verify.html", demo_otp=demo_otp, patient_name=patient_name)
 
 
 # ─────────────────────────────────────────────────────────────────────────────
-# Step 7.5 — Patient history (verified token required on every load)
+# Patient history (verified token required on every load)
 # ─────────────────────────────────────────────────────────────────────────────
 @doctor_routes.route("/patient/<int:patient_id>/history")
 @role_required("doctor")
@@ -93,13 +98,12 @@ def patient_history(patient_id: int):
         if v.created_by == current_user.id and v.created_at >= cutoff
     }
 
-    # Step 7.6 AI summary — lazy import avoids error before Step 9 is built
     ai_summary = None
     try:
         from app.services.ai_service import get_summary
         ai_summary = get_summary(patient_id, visits)
     except Exception:
-        pass  # AI service not ready yet (Step 9)
+        pass
 
     try:
         patient_name = decrypt(patient.name_encrypted)
@@ -118,7 +122,7 @@ def patient_history(patient_id: int):
 
 
 # ─────────────────────────────────────────────────────────────────────────────
-# Step 7.7 — Add a new visit (GET = form, POST = save)
+# Add a new visit (GET = form, POST = save)
 # ─────────────────────────────────────────────────────────────────────────────
 @doctor_routes.route("/patient/<int:patient_id>/add-checkup", methods=["GET", "POST"])
 @role_required("doctor")
@@ -188,6 +192,31 @@ def add_checkup(patient_id: int):
         except Exception:
             pass
 
+        # ── Real-Time Municipal Surveillance Permitted Aggregation ────────────
+        try:
+            from app.models.stats import Stats
+            from app.services.anomaly_ml_service import get_default_ward_case_count
+            clean_ward = area.split("(")[0].strip()
+            condition_query = condition.replace("_", " ").strip()
+            today_bucket = datetime.utcnow().strftime("%Y-%m-%d")
+
+            stat = Stats.query.filter(
+                db.or_(Stats.area == clean_ward, Stats.area == area, Stats.area.like(f"{clean_ward}%")),
+                db.or_(
+                    Stats.condition.ilike(f"%{condition_query}%"),
+                    Stats.condition.ilike(f"%{condition_query.split()[0]}%")
+                )
+            ).order_by(Stats.id.desc()).first()
+
+            if stat:
+                stat.count += 1
+            else:
+                baseline = get_default_ward_case_count(clean_ward, condition_query) + 1
+                stat = Stats(area=clean_ward, condition=condition.title(), time_bucket=today_bucket, count=baseline)
+                db.session.add(stat)
+        except Exception as e:
+            current_app.logger.warning(f"Failed to update Stats from add_checkup: {e}")
+
         db.session.commit()
         flash("Checkup added successfully.", "success")
         return redirect(url_for("doctor_routes.patient_history", patient_id=patient_id))
@@ -197,7 +226,7 @@ def add_checkup(patient_id: int):
 
 
 # ─────────────────────────────────────────────────────────────────────────────
-# Step 7.8 — Delete own recent visit (strict server-side rule — no client bypass)
+# Delete own recent visit (strict server-side rule — no client bypass)
 # ─────────────────────────────────────────────────────────────────────────────
 @doctor_routes.route("/visit/<int:visit_id>/delete", methods=["POST"])
 @role_required("doctor")
@@ -211,10 +240,10 @@ def delete_visit(visit_id: int):
     # Rule 2: must be within the edit window
     cutoff = datetime.utcnow() - timedelta(hours=DOCTOR_RECORD_EDIT_WINDOW_HOURS)
     if visit.created_at < cutoff:
-        abort(403)  # Past the edit window — immutable now
+        abort(403)
 
     # Rule 3: must hold a valid token for this patient
-    patient = _get_authorised_patient(visit.patient_id)  # aborts 403 if invalid
+    patient = _get_authorised_patient(visit.patient_id)
 
     db.session.delete(visit)
     db.session.commit()

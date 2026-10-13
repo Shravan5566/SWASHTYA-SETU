@@ -19,8 +19,8 @@ export default function Privacy() {
     },
     {
       num: '03',
-      title: 'Differential Privacy in Surveillance',
-      desc: 'Epidemiological outbreak detection enforces a k-anonymity minimum cohort threshold (< 5 cases). Small sample sizes are suppressed to mathematically prevent re-identification of citizens in specific wards.',
+      title: 'Minimum Group-Size Privacy (k ≥ 5)',
+      desc: 'Epidemiological outbreak detection enforces a minimum cohort threshold (k ≥ 5 distinct patients). Small sample sizes are suppressed to prevent re-identification of citizens in specific wards.',
       pill: 'Section 4 • Anonymized Statistics',
     },
     {

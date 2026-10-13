@@ -1,4 +1,3 @@
-# pyrefly: ignore [missing-import]
 from flask import Blueprint, render_template, request, redirect, url_for, flash, session
 from flask_login import login_user, logout_user, login_required, current_user
 from app.models.user import User
@@ -25,9 +24,8 @@ def get_role_dashboard(role: str) -> str:
 @rate_limit(max_requests=10, window_seconds=60, message="Too many login attempts. Please wait 1 minute before trying again.")
 def login():
     """Shared login handler for doctor, pharmacist, public_health_admin, and sysadmin."""
-    # If already logged in, redirect to their role dashboard immediately
-    if current_user.is_authenticated:
-        return redirect(get_role_dashboard(getattr(current_user, "role", "")))
+    if request.method == "GET":
+        return redirect("/#/")
 
     if request.method == "POST":
         username = request.form.get("username", "").strip()

@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { post, useFetch } from '../api'
+import { api, post, useFetch } from '../api'
 import { useLang } from '../i18n'
 import { HealthCard, Section } from '../ui'
 
@@ -12,6 +12,9 @@ export default function Apply() {
   const [f, setF] = useState({
     name: '',
     phone: '',
+    email: '',
+    age: '28',
+    gender: 'Male',
     dob: '',
     locality: 'Shivajinagar',
     blood_group: 'O+',
@@ -48,6 +51,9 @@ export default function Apply() {
       const res = await post('/api/applications', {
         name: f.name.trim(),
         phone: f.phone.trim(),
+        email: f.email.trim(),
+        age: f.age.trim(),
+        gender: f.gender,
         dob: f.dob,
         locality: f.locality,
         blood_group: f.blood_group,
@@ -63,99 +69,191 @@ export default function Apply() {
   }
 
   if (card) {
-    const approved = card.status === 'approved' || card.card_id
+    const approved = (card.status === 'approved' || card.card_id) && card.status !== 'pending'
     return (
       <Section
-        eyebrow="Citizen Health Card Issued"
-        title={approved ? 'Your Digital Health Card' : 'Application Received'}
+        eyebrow={approved ? 'Citizen Health Card Issued' : 'Application Queued for Review'}
+        title={approved ? 'Your Digital Health Card' : 'Application Awaiting Municipal Approval'}
       >
-        <div className="grid lg:grid-cols-2 gap-10 items-start max-w-[1040px] mx-auto animate-in fade-in duration-200">
-          <div className="card p-8 flex justify-center bg-gradient-to-b from-slate-50/60 to-white shadow-md">
-            <HealthCard
-              name={card.name ?? f.name}
-              blood={card.blood_group ?? f.blood_group}
-              locality={card.locality ?? f.locality}
-              cardId={card.card_id}
-              helpline={card.helpline}
-            />
-          </div>
+        {approved ? (
+          <div className="grid lg:grid-cols-2 gap-10 items-start max-w-[1040px] mx-auto animate-in fade-in duration-200">
+            <div className="card p-8 flex justify-center bg-gradient-to-b from-slate-50/60 to-white shadow-md">
+              <HealthCard
+                name={card.name ?? f.name}
+                blood={card.blood_group ?? f.blood_group}
+                locality={card.locality ?? f.locality}
+                cardId={card.card_id}
+                gender={(card as any).gender ?? (f as any).gender}
+                dob={card.dob ?? f.dob}
+                helpline={card.helpline}
+              />
+            </div>
 
-          <div className="card p-8 flex flex-col justify-between h-full bg-white">
-            <div>
-              <div className="flex items-center gap-2 mb-3">
-                <span className="pill pill-green font-bold text-xs">
-                  ✓ {approved ? 'Card Issued & Active' : 'Under Review'}
-                </span>
-                {card.reference && (
-                  <span className="pill pill-grey font-mono text-xs">
-                    Ref: {card.reference}
+            <div className="card p-8 flex flex-col justify-between h-full bg-white">
+              <div>
+                <div className="flex items-center gap-2 mb-3">
+                  <span className="pill pill-green font-bold text-xs">
+                    ✓ Card Issued & Active
                   </span>
-                )}
+                  {card.reference && (
+                    <span className="pill pill-grey font-mono text-xs">
+                      Ref: {card.reference}
+                    </span>
+                  )}
+                </div>
+
+                <h3 className="text-2xl font-extrabold text-ink mb-2">
+                  {card.name ?? f.name}
+                </h3>
+
+                <p className="text-slate-600 text-sm leading-relaxed mb-6">
+                  Your Swasthya Setu digital health identity has been generated with end-to-end
+                  cryptographic isolation. Show this QR card at participating healthcare centers and clinics for
+                  instant one-touch check-in.
+                </p>
+
+                <div className="bg-slate-50 p-4 rounded-xl border border-slate-100 text-xs text-slate-600 grid gap-1.5 mb-6">
+                  <div>
+                    <span className="font-bold text-ink">Beneficiary Card ID: </span>
+                    <span className="font-mono">{card.card_id}</span>
+                  </div>
+                  <div>
+                    <span className="font-bold text-ink">Ward / Locality: </span>
+                    <span>{card.locality ?? f.locality}</span>
+                  </div>
+                  <div>
+                    <span className="font-bold text-ink">Registered Phone: </span>
+                    <span>{f.phone}</span>
+                  </div>
+                </div>
               </div>
 
-              <h3 className="text-2xl font-extrabold text-ink mb-2">
-                {card.name ?? f.name}
+              <div className="flex flex-wrap gap-3 pt-4 border-t border-slate-100">
+                <a
+                  href={`/api/card/${encodeURIComponent(card.card_id)}/image`}
+                  download={`Swasthya_Setu_Health_Card_${card.card_id}.png`}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="btn btn-saffron h-12 px-6 flex-1 text-sm font-bold flex items-center justify-center text-white"
+                >
+                  ⬇️ Download Official Card (PNG)
+                </a>
+                <button
+                  type="button"
+                  className="btn btn-ghost h-12 px-5 text-sm font-semibold border border-slate-200"
+                  onClick={() => window.print()}
+                >
+                  🖨️ {t('save', 'Print')}
+                </button>
+                <button
+                  type="button"
+                  className="btn btn-ghost h-12 px-5 text-sm"
+                  onClick={() => {
+                    setCard(null)
+                    setStep(0)
+                    setF({
+                      name: '',
+                      phone: '',
+                      email: '',
+                      age: '',
+                      gender: 'Male',
+                      dob: '',
+                      locality: 'Shivajinagar',
+                      blood_group: 'O+',
+                      allergies: '',
+                      chronic_conditions: '',
+                    })
+                  }}
+                >
+                  New Application
+                </button>
+              </div>
+            </div>
+          </div>
+        ) : (
+          <div className="max-w-[700px] mx-auto animate-in fade-in duration-200">
+            <div className="card p-8 md:p-10 bg-white border-slate-200 shadow-xl">
+              <div className="flex items-center gap-2 mb-4">
+                <span className="pill pill-amber font-bold text-xs">
+                  ⏳ Status: Pending Review by Municipal Administrator
+                </span>
+                <span className="pill pill-grey font-mono text-xs">
+                  Ref: {card.reference}
+                </span>
+              </div>
+
+              <h3 className="text-2xl font-extrabold text-ink mb-3">
+                Application Successfully Queued
               </h3>
 
               <p className="text-slate-600 text-sm leading-relaxed mb-6">
-                Your Swasthya Setu digital health identity has been generated with end-to-end
-                cryptographic isolation. Show this QR card at participating healthcare centers and clinics for
-                instant one-touch check-in.
+                Under the Digital Personal Data Protection (DPDP) Act and system access controls, digital health cards cannot be self-issued. Your application has been logged and queued in the <strong>System Administrator Governance Console</strong> for formal verification.
               </p>
 
-              <div className="bg-slate-50 p-4 rounded-xl border border-slate-100 text-xs text-slate-600 grid gap-1.5 mb-6">
+              <div className="bg-slate-50 p-5 rounded-2xl border border-slate-200/80 text-xs text-slate-700 grid sm:grid-cols-2 gap-3 mb-8">
                 <div>
-                  <span className="font-bold text-ink">Beneficiary Card ID: </span>
-                  <span className="font-mono">{card.card_id}</span>
+                  <span className="text-slate-400 block mb-0.5 font-bold uppercase text-[10px]">Applicant Legal Name</span>
+                  <span className="font-bold text-ink text-sm">{card.name ?? f.name}</span>
                 </div>
                 <div>
-                  <span className="font-bold text-ink">Ward / Locality: </span>
-                  <span>{card.locality ?? f.locality}</span>
+                  <span className="text-slate-400 block mb-0.5 font-bold uppercase text-[10px]">Application Reference</span>
+                  <span className="font-mono font-bold text-orange-600 text-sm">{card.reference}</span>
                 </div>
                 <div>
-                  <span className="font-bold text-ink">Registered Phone: </span>
-                  <span>{f.phone}</span>
+                  <span className="text-slate-400 block mb-0.5 font-bold uppercase text-[10px]">Ward / Locality</span>
+                  <span className="font-semibold text-slate-800">{card.locality ?? f.locality}</span>
+                </div>
+                <div>
+                  <span className="text-slate-400 block mb-0.5 font-bold uppercase text-[10px]">Registered Contact</span>
+                  <span className="font-mono text-slate-800">{f.phone}</span>
                 </div>
               </div>
-            </div>
 
-            <div className="flex flex-wrap gap-3 pt-4 border-t border-slate-100">
-              <button
-                type="button"
-                className="btn btn-saffron h-12 px-6 flex-1 text-sm font-bold"
-                onClick={() => window.print()}
-              >
-                🖨️ {t('save', 'Print / Save Health Card')}
-              </button>
-              <button
-                type="button"
-                className="btn btn-ghost h-12 px-5 text-sm"
-                onClick={() => {
-                  setCard(null)
-                  setStep(0)
-                  setF({
-                    name: '',
-                    phone: '',
-                    dob: '',
-                    locality: 'Shivajinagar',
-                    blood_group: 'O+',
-                    allergies: '',
-                    chronic_conditions: '',
-                  })
-                }}
-              >
-                Enroll Another Citizen
-              </button>
+              <div className="flex flex-wrap gap-3">
+                <a
+                  href="#/track"
+                  className="btn btn-saffron h-12 px-6 flex-1 text-sm font-bold text-center flex items-center justify-center text-white"
+                >
+                  🔍 Track Application Status →
+                </a>
+                <button
+                  type="button"
+                  className="btn btn-ghost h-12 px-5 text-sm"
+                  onClick={() => {
+                    setCard(null)
+                    setStep(0)
+                    setF({
+                      name: '',
+                      phone: '',
+                      email: '',
+                      age: '',
+                      gender: 'Male',
+                      dob: '',
+                      locality: 'Shivajinagar',
+                      blood_group: 'O+',
+                      allergies: '',
+                      chronic_conditions: '',
+                    })
+                  }}
+                >
+                  Submit Another Application
+                </button>
+              </div>
             </div>
           </div>
-        </div>
+        )}
       </Section>
     )
   }
 
   const ok = [
-    f.name.trim().length >= 3 && f.phone.trim().length >= 10,
-    f.locality && f.blood_group,
+    f.name.trim().length >= 3 &&
+      f.phone.trim().length >= 10 &&
+      Boolean(f.age) &&
+      Boolean(f.gender) &&
+      Boolean(f.email?.trim()) &&
+      f.email.includes('@'),
+    Boolean(f.locality) && Boolean(f.blood_group),
     true,
   ][step]
 
@@ -224,15 +322,89 @@ export default function Apply() {
               </div>
 
               <div>
+                <label className="label" htmlFor="email">
+                  {t('f.email', 'Email Address (for Official Card Delivery & OTP Backup)')} *
+                </label>
+                <input
+                  id="email"
+                  type="email"
+                  className="input"
+                  placeholder="e.g. yourname@gmail.com"
+                  value={f.email}
+                  onChange={(e) => set('email', e.target.value)}
+                />
+                <p className="text-[11px] text-slate-500 mt-1">
+                  Your official Digital Health Card PNG and approval certificate will be emailed directly here upon municipal review.
+                </p>
+              </div>
+
+              {/* Age and Gender Selection */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                  <label className="label" htmlFor="age">
+                    {t('f.age', 'Age (in Years)')} *
+                  </label>
+                  <input
+                    id="age"
+                    type="number"
+                    min="1"
+                    max="120"
+                    className="input font-mono"
+                    placeholder="e.g. 28"
+                    value={f.age}
+                    onChange={(e) => {
+                      const val = e.target.value
+                      set('age', val)
+                      if (val) {
+                        const yr = new Date().getFullYear() - parseInt(val, 10)
+                        if (!isNaN(yr)) set('dob', `${yr}-01-01`)
+                      }
+                    }}
+                  />
+                </div>
+
+                <div>
+                  <label className="label">
+                    {t('f.gender', 'Gender')} *
+                  </label>
+                  <div className="grid grid-cols-3 gap-2">
+                    {['Male', 'Female', 'Other'].map((g) => (
+                      <button
+                        key={g}
+                        type="button"
+                        className={`btn h-11 text-xs font-bold border transition-all ${
+                          f.gender === g
+                            ? 'bg-orange-500 text-white border-orange-600 shadow-sm'
+                            : 'btn-ghost'
+                        }`}
+                        onClick={() => set('gender', g)}
+                      >
+                        {g}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              </div>
+
+              <div>
                 <label className="label" htmlFor="dob">
-                  {t('f.dob', 'Date of Birth')}
+                  {t('f.dob', 'Date of Birth (Optional)')}
                 </label>
                 <input
                   id="dob"
                   type="date"
                   className="input"
                   value={f.dob}
-                  onChange={(e) => set('dob', e.target.value)}
+                  onChange={(e) => {
+                    const val = e.target.value
+                    set('dob', val)
+                    if (val) {
+                      const yr = new Date(val).getFullYear()
+                      if (!isNaN(yr)) {
+                        set('age', String(new Date().getFullYear() - yr))
+                      }
+                    }
+                  }}
                 />
               </div>
             </div>
@@ -307,6 +479,8 @@ export default function Apply() {
                   blood={f.blood_group}
                   locality={f.locality}
                   cardId="SS-PREVIEW-2026"
+                  gender={f.gender}
+                  dob={f.dob}
                 />
               </div>
 
@@ -319,9 +493,19 @@ export default function Apply() {
                   <span className="font-semibold text-ink">{f.name}</span>
                 </div>
                 <div className="flex justify-between">
+                  <span className="text-slate-500">Age / Gender:</span>
+                  <span className="font-semibold text-ink">{f.age} Years · {f.gender}</span>
+                </div>
+                <div className="flex justify-between">
                   <span className="text-slate-500">Phone:</span>
                   <span className="font-mono font-semibold text-ink">{f.phone}</span>
                 </div>
+                {f.email && (
+                  <div className="flex justify-between">
+                    <span className="text-slate-500">Delivery Email:</span>
+                    <span className="font-semibold text-ink">{f.email}</span>
+                  </div>
+                )}
                 <div className="flex justify-between">
                   <span className="text-slate-500">Locality:</span>
                   <span className="font-semibold text-ink">{f.locality}</span>
@@ -453,21 +637,6 @@ export function Track() {
             </button>
           </div>
 
-          {/* Quick Demo Reference Pill */}
-          <div className="mt-3 flex items-center gap-2 text-xs text-slate-500">
-            <span>Fast test:</span>
-            <button
-              type="button"
-              className="pill pill-orange cursor-pointer hover:bg-orange-100"
-              onClick={() => {
-                setRef('SS-A8F392B1')
-                check('SS-A8F392B1')
-              }}
-            >
-              ⚡ SS-A8F392B1 (Click to query)
-            </button>
-          </div>
-
           {err && (
             <div className="mt-4 p-3 rounded-xl bg-red-50 border border-red-200 text-red-800 text-xs font-semibold">
               ⚠️ {err}
@@ -480,8 +649,20 @@ export function Track() {
           <div className="card p-7 md:p-8 bg-white border-slate-200 shadow-md animate-in fade-in duration-200">
             <div className="flex items-center justify-between pb-4 border-b border-slate-100 mb-6">
               <div>
-                <span className="pill pill-green font-bold text-xs mb-1.5">
-                  ✓ {res.status ? res.status.toUpperCase() : 'ACTIVE'}
+                <span
+                  className={`pill font-bold text-xs mb-1.5 ${
+                    res.status === 'approved'
+                      ? 'pill-green'
+                      : res.status === 'rejected'
+                      ? 'pill-peach'
+                      : 'pill-amber'
+                  }`}
+                >
+                  {res.status === 'approved'
+                    ? '✓ APPROVED & CARD ISSUED'
+                    : res.status === 'rejected'
+                    ? '✕ APPLICATION REJECTED'
+                    : '⏳ PENDING MUNICIPAL REVIEW'}
                 </span>
                 <h3 className="text-xl font-extrabold text-ink">{res.name || res.full_name}</h3>
               </div>
@@ -490,7 +671,7 @@ export function Track() {
               </span>
             </div>
 
-            <div className="grid sm:grid-cols-2 gap-4 text-xs mb-8">
+            <div className="grid sm:grid-cols-2 gap-4 text-xs mb-6">
               <div className="p-3 bg-slate-50 rounded-xl">
                 <span className="text-slate-400 block mb-0.5">Locality / Ward</span>
                 <span className="font-bold text-ink text-sm">{res.locality || 'Pune'}</span>
@@ -511,22 +692,49 @@ export function Track() {
               </div>
             </div>
 
-            {/* Display Health Card if issued */}
-            {(res.card_id || res.status === 'approved') && (
+            {/* If pending review, show explanation */}
+            {res.status === 'pending' && !res.card_id && (
+              <div className="p-4 rounded-xl bg-amber-50/70 border border-amber-200 text-xs text-amber-900 leading-relaxed mb-4">
+                <strong>Under Institutional Verification:</strong> This application has been queued for review by the Pune Municipal Health Administration. To prevent credential forgery, digital health cards and QR codes are issued only upon formal administrator approval.
+              </div>
+            )}
+
+            {/* If rejected, show reason */}
+            {res.status === 'rejected' && (
+              <div className="p-4 rounded-xl bg-red-50 border border-red-200 text-xs text-red-900 leading-relaxed mb-4">
+                <strong>Rejection Notice:</strong> {res.admin_notes || 'Verification criteria could not be validated.'}
+              </div>
+            )}
+
+            {/* Display Health Card only if officially approved and card_id exists */}
+            {res.card_id && res.status === 'approved' && (
               <div className="flex flex-col items-center gap-4 pt-4 border-t border-slate-100">
                 <HealthCard
                   name={res.name || res.full_name}
                   blood={res.blood_group}
                   locality={res.locality}
                   cardId={res.card_id}
+                  gender={res.gender}
+                  dob={res.dob}
                 />
-                <button
-                  type="button"
-                  className="btn btn-saffron h-11 px-6 text-xs font-bold"
-                  onClick={() => window.print()}
-                >
-                  🖨️ Print / Download Health Card
-                </button>
+                <div className="flex flex-wrap gap-3">
+                  <a
+                    href={`/api/card/${encodeURIComponent(res.card_id)}/image`}
+                    download={`Swasthya_Setu_Health_Card_${res.card_id}.png`}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="btn btn-saffron h-11 px-6 text-xs font-bold flex items-center justify-center text-white"
+                  >
+                    ⬇️ Download Official Card (PNG)
+                  </a>
+                  <button
+                    type="button"
+                    className="btn btn-ghost h-11 px-5 text-xs font-semibold border border-slate-200"
+                    onClick={() => window.print()}
+                  >
+                    🖨️ Print Card
+                  </button>
+                </div>
               </div>
             )}
           </div>

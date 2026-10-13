@@ -7,53 +7,78 @@ from app.utils.crypto import encrypt, decrypt
 DEFAULT_USERS = [
     # Official Medical Practitioner Accounts
     {
-        "username": "dr.aisha.verma",
+        "username": "dr.rajesh.kulkarni",
         "password": "password123",
         "role": "doctor",
-        "full_name": "Dr. Aisha Verma (Senior Medical Officer)",
+        "full_name": "Dr. Rajesh Kulkarni, MD (Senior Medical Officer)",
     },
     {
-        "username": "rahul.patel",
+        "username": "ramesh.kadam",
         "password": "password123",
         "role": "pharmacist",
-        "full_name": "Rahul Patel, R.Ph (Chief Dispensary Pharmacist)",
+        "full_name": "Ramesh Kadam, R.Ph (Lead Clinical Pharmacist)",
     },
     {
-        "username": "priya.nair",
+        "username": "dr.meenakshi.sundaram",
         "password": "password123",
         "role": "public_health_admin",
-        "full_name": "Priya Nair, MPH (Chief Epidemiologist)",
+        "full_name": "Dr. Meenakshi Sundaram, MD, MPH (Chief Epidemiologist)",
     },
     {
-        "username": "vikram.rao",
+        "username": "director.raman",
         "password": "password123",
         "role": "sysadmin",
-        "full_name": "Vikram Rao (Lead Systems Security Director)",
+        "full_name": "Director V. K. Raman (Lead Healthcare Systems Security Officer)",
     },
     # Fast-Login Aliases
     {
         "username": "doctor_demo",
         "password": "password123",
         "role": "doctor",
-        "full_name": "Dr. Aisha Verma",
+        "full_name": "Dr. Rajesh Kulkarni, MD",
     },
     {
         "username": "pharma_demo",
         "password": "password123",
         "role": "pharmacist",
-        "full_name": "Rahul Patel",
+        "full_name": "Ramesh Kadam, R.Ph",
     },
     {
         "username": "public_demo",
         "password": "password123",
         "role": "public_health_admin",
-        "full_name": "Priya Nair",
+        "full_name": "Dr. Meenakshi Sundaram, MD, MPH",
     },
     {
         "username": "admin_demo",
         "password": "password123",
         "role": "sysadmin",
-        "full_name": "Admin Vikram Rao",
+        "full_name": "Director V. K. Raman",
+    },
+    # Backward compatibility aliases
+    {
+        "username": "dr.aisha.verma",
+        "password": "password123",
+        "role": "doctor",
+        "full_name": "Dr. Rajesh Kulkarni, MD",
+    },
+    {
+        "username": "priya.nair",
+        "password": "password123",
+        "role": "public_health_admin",
+        "full_name": "Dr. Meenakshi Sundaram, MD, MPH",
+    },
+    {
+        "username": "rahul.patel",
+        "password": "password123",
+        "role": "pharmacist",
+        "full_name": "Ramesh Kadam, R.Ph",
+    },
+    {
+        "username": "vikram.rao",
+        "password": "password123",
+        "role": "sysadmin",
+        "full_name": "Director V. K. Raman",
     },
 ]
 
@@ -84,9 +109,9 @@ def seed_staff_accounts():
 
 
 DEFAULT_PATIENTS = [
-    {"card_id": "SS-TEST-001", "name": "Meera Joshi",   "phone": "+919876543210"},
-    {"card_id": "SS-TEST-002", "name": "Arjun Sharma",  "phone": "+919876543211"},
-    {"card_id": "SS-TEST-003", "name": "Priya Sen",     "phone": "+919876543212"},
+    {"card_id": "SS-TEST-001", "name": "Meera Joshi",   "phone": "+919876543210", "email": "shravanwadnerkar41206@gmail.com"},
+    {"card_id": "SS-TEST-002", "name": "Arjun Sharma",  "phone": "+919876543211", "email": "shravanwadnerkar41206@gmail.com"},
+    {"card_id": "SS-TEST-003", "name": "Kavita Patil",   "phone": "+919876543212", "email": "shravanwadnerkar41206@gmail.com"},
 ]
 
 
@@ -103,6 +128,7 @@ def seed_patients() -> list:
                 card_id=pd["card_id"],
                 name_encrypted=encrypt(pd["name"]),
                 phone_encrypted=encrypt(pd["phone"]),
+                email=encrypt(pd["email"]) if pd.get("email") else None,
             )
             db.session.add(patient)
             db.session.flush()
@@ -110,6 +136,8 @@ def seed_patients() -> list:
             created.append(pd["card_id"])
         else:
             patient = existing
+            if pd.get("email") and not patient.email:
+                patient.email = encrypt(pd["email"])
             if decrypt(patient.phone_encrypted) == "[Decryption Error]" or decrypt(patient.name_encrypted) == "[Decryption Error]" or not patient.phone_encrypted:
                 patient.name_encrypted = encrypt(pd["name"])
                 patient.phone_encrypted = encrypt(pd["phone"])

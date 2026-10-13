@@ -1,4 +1,3 @@
-# pyrefly: ignore [missing-import]
 """
 utils/terminal_logger.py — Real-Time Terminal Activity & Diagnostics Layer
 
@@ -46,7 +45,7 @@ def log_startup_banner(db_uri: str, gemini_key: str, mail_user: str, mail_server
     print("=" * 70 + f"{RESET}")
 
     # Database
-    safe_db = db_uri
+    safe_db = db_uri or "sqlite:///swasthya_setu.db"
     if "@" in safe_db:
         prefix, rest = safe_db.split("@", 1)
         proto = prefix.split("://")[0] if "://" in prefix else "db"
@@ -60,7 +59,7 @@ def log_startup_banner(db_uri: str, gemini_key: str, mail_user: str, mail_server
     if gemini_key:
         preview = f"{gemini_key[:8]}...{gemini_key[-6:]}" if len(gemini_key) > 14 else "***"
         print(f"   Google Gemini : {GREEN}ACTIVE{RESET} (Key: {preview})")
-        print(f"   Models In Use : gemini-1.5-flash, gemini-2.0-flash, gemini-1.5-pro")
+        print(f"   Models In Use : gemini-1.5-flash, gemini-2.0-flash")
         print(f"   Offline Cache : In-memory differential cache enabled")
     else:
         print(f"   Google Gemini : {YELLOW}OFFLINE / FALLBACK{RESET} (Rule-based NLP engine active)")
@@ -69,11 +68,11 @@ def log_startup_banner(db_uri: str, gemini_key: str, mail_user: str, mail_server
     print(f"\n{BOLD}📧 [NOTIFICATION SUBSYSTEM (GMAIL SMTP)]{RESET}")
     if mail_user:
         print(f"   Sender Account: {GREEN}{mail_user}{RESET}")
-        print(f"   SMTP Server   : {mail_server}:{mail_port} (TLS Enabled)")
+        print(f"   SMTP Server   : {mail_server}:{mail_port} (SSL Enabled)")
     else:
         print(f"   Sender Account: {YELLOW}NOT CONFIGURED{RESET} (Simulated console mode)")
 
-    # OTP / Delivery
+    # OTP
     print(f"\n{BOLD}📱 [OTP SUBSYSTEM]{RESET}")
     print(f"   Delivery Mode  : {CYAN}Gmail (SMTP){RESET}  — OTP sent to patient's registered email")
     print(f"   SMS Provider   : {YELLOW}NOT CONFIGURED{RESET} (Twilio key empty — using Gmail only)")
@@ -81,7 +80,7 @@ def log_startup_banner(db_uri: str, gemini_key: str, mail_user: str, mail_server
     print(f"   Fallback       : {GREEN}ENABLED{RESET} (If no email on file, OTP shown in terminal only)")
 
     # Rate Limiting
-    print(f"\n{BOLD}🛡️ [SECURITY & RATE LIMITING]{RESET}")
+    print(f"\n{BOLD}🛡️  [SECURITY & RATE LIMITING]{RESET}")
     print(f"   Rate Limiter  : {GREEN}ACTIVE{RESET} (Protects /login, /apply, /verify-otp, /admin)")
     print(f"   RBAC & Audit  : {GREEN}ACTIVE{RESET} (All access decisions logged to AccessLog table)")
 
