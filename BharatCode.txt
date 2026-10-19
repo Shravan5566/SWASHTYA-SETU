@@ -1,1 +1,8 @@
 
+Swasthya Setu is an enterprise-grade digital health ecosystem built for municipal health administrations (demonstrated on the Pune Municipal Corporation jurisdiction). The system solves five fundamental healthcare delivery challenges:
+
+Fragmented Patient Records: Eliminates physical paper folders through a unified, cryptographically secure Digital Citizen Health ID Card with a scannable high-contrast QR code.
+DPDP Act 2023 Aligned Dynamic Consent: Doctors cannot access clinical history without an explicit 6-digit OTP sent via live email or an active scoped consent token. Patients can revoke access at any second with instant revocation.
+Audited Emergency Break-Glass: In life-threatening trauma cases, clinicians can initiate audited emergency access with mandatory clinical justification, while administrators only see cryptographic pseudonymized IDs (ANON-xxxx) upholding patient privacy.
+Clinical Speed & Safety: Equips doctors with Google Gemini AI Multilingual Voice Prescription Dictation and real-time Drug-Drug Interaction (DDI) Safety Alerts.
+Epidemiological Early Warning & Machine Learning: Integrates pre-trained Random Forest regression and spike anomaly classifiers trained on 7 years of municipal ward time-series data, providing 4 to 7 day advance outbreak warnings with 66.3% false alert reduction.
